@@ -10,7 +10,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- Load html2canvas and jsPDF directly so they're reliably global on iOS Safari
+     (the html2pdf.bundle wrapper sometimes doesn't expose html2canvas globally) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
 
 <style>
@@ -47,9 +50,10 @@
     padding:6px 0 14px;margin-bottom:6px}
   .topbar h1{font-size:16px;font-weight:600;margin:0;letter-spacing:.01em;flex:1}
   .topbar .sub{display:none}
-  .back-btn{width:auto;padding:6px 12px;font-size:12px;min-height:0;
+  .back-btn{width:auto;height:32px;padding:0 12px;font-size:12px;
     background:transparent;color:var(--navy);
-    border:1px solid var(--field-border);border-radius:6px;cursor:pointer}
+    border:1px solid var(--field-border);border-radius:6px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:0}
   .back-btn:hover{background:var(--navy-tint)}
   .app[data-view="form"] .back-btn{display:none}
 
@@ -72,10 +76,10 @@
   .clause-row{display:grid;grid-template-columns:48px 1fr 28px;gap:8px;
     align-items:start;margin-bottom:8px}
   .clause-row input[type=text]{padding:6px 8px;text-align:center;font-size:12px}
-  .clause-del{width:28px;height:28px;padding:0;background:transparent;
+  .clause-del{width:32px;height:32px;padding:0;background:transparent;
     color:var(--muted);border:1px solid var(--field-border);border-radius:6px;
     font-size:12px;line-height:1;cursor:pointer;align-self:start;
-    display:inline-flex;align-items:center;justify-content:center;min-height:0}
+    display:inline-flex;align-items:center;justify-content:center}
   .clause-del:hover{color:#c0392b;border-color:#e2c8c5;background:#fdf6f5}
 
   .import-box{background:#fafafa;border:1px dashed #d4d4d4;border-radius:8px;
@@ -96,10 +100,11 @@
     font-size:11.5px;color:var(--navy);cursor:pointer;background:#fff}
   .file-button:hover{background:var(--navy-tint)}
 
-  button{width:100%;padding:12px 14px;font:inherit;font-size:13px;
+  button{width:100%;height:48px;padding:0 16px;font:inherit;font-size:13.5px;
     font-weight:500;background:var(--navy);color:#fff;border:0;border-radius:8px;
     cursor:pointer;transition:background .15s,opacity .15s;letter-spacing:.02em;
-    min-height:44px;-webkit-tap-highlight-color:transparent}
+    -webkit-tap-highlight-color:transparent;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px}
   button:hover{background:var(--navy-soft)}
   button.secondary{background:transparent;color:var(--navy);
     border:1px solid var(--field-border);margin-top:8px}
@@ -139,21 +144,18 @@
     margin-top:4px;font-weight:400}
 
   /* KakaoTalk yellow button */
-  button.kakao{background:#FEE500;color:#191919;
-    display:inline-flex;align-items:center;justify-content:center;gap:8px}
+  button.kakao{background:#FEE500;color:#191919}
   button.kakao:hover{background:#f5d800}
-  button.kakao .kakao-icon{display:inline-block;width:18px;height:18px;
-    line-height:18px;border-radius:50%;background:#191919;color:#FEE500;
-    font-size:11px;text-align:center;font-weight:900}
+  button.kakao svg{width:18px;height:18px;flex-shrink:0}
 
   /* ===== Preview area ===== */
   .preview-wrap{padding:0}
 
   .tabs{display:flex;gap:4px;margin:0 auto 18px;max-width:210mm;
     background:#ececea;border-radius:8px;padding:4px}
-  .tab{flex:1;padding:9px 10px;text-align:center;font-size:12.5px;
+  .tab{flex:1;height:36px;padding:0 10px;text-align:center;font-size:12.5px;
     font-weight:500;color:var(--muted);background:transparent;
-    border:0;border-radius:6px;cursor:pointer;min-height:0}
+    border:0;border-radius:6px;cursor:pointer}
   .tab:hover{background:rgba(255,255,255,.5)}
   .tab.active{background:#fff;color:var(--navy);
     box-shadow:0 1px 2px rgba(0,0,0,.06)}
@@ -486,7 +488,10 @@
     <div class="preview-actions">
       <button type="button" class="secondary" id="btn-back-2">← 돌아가기</button>
       <button type="button" class="kakao" id="btn-share-kakao">
-        <span class="kakao-icon">●</span> 카카오톡으로 보내기
+        <svg viewBox="0 0 24 24" fill="#191919" aria-hidden="true">
+          <path d="M12 3C6.48 3 2 6.55 2 10.93c0 2.84 1.83 5.32 4.6 6.78l-1.04 3.83c-.1.36.31.65.62.43L10.74 19c.41.04.83.06 1.26.06 5.52 0 10-3.55 10-7.93S17.52 3 12 3z"/>
+        </svg>
+        카카오톡으로 보내기
       </button>
       <button type="button" class="secondary full" id="btn-share-sms">
         💬 문자로 보내기
