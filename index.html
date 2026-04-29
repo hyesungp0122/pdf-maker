@@ -131,6 +131,14 @@
   .preview-actions button{flex:1;min-width:140px;width:auto}
   .preview-actions .full{flex:1 0 100%;min-width:0}
 
+  /* KakaoTalk yellow button */
+  button.kakao{background:#FEE500;color:#191919;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px}
+  button.kakao:hover{background:#f5d800}
+  button.kakao .kakao-icon{display:inline-block;width:18px;height:18px;
+    line-height:18px;border-radius:50%;background:#191919;color:#FEE500;
+    font-size:11px;text-align:center;font-weight:900}
+
   /* ===== Preview area ===== */
   .preview-wrap{padding:0}
 
@@ -470,9 +478,12 @@
 
     <div class="preview-actions">
       <button type="button" class="secondary" id="btn-back-2">← 돌아가기</button>
-      <button type="button" class="save-a4"      id="btn-pdf-a4">A4 저장</button>
-      <button type="button" class="secondary save-receipt" id="btn-pdf-receipt">모바일용 저장</button>
-      <button type="button" class="secondary full save-both" id="btn-pdf-both">A4 + 모바일용 둘 다 저장</button>
+      <button type="button" class="kakao" id="btn-share-kakao">
+        <span class="kakao-icon">●</span> 카카오톡으로 보내기
+      </button>
+      <button type="button" class="secondary full" id="btn-share-sms">
+        💬 문자로 보내기
+      </button>
     </div>
 
   </main>
@@ -588,15 +599,6 @@ function setTab(name){
   });
   $("page").classList.toggle("hidden",    name !== "a4");
   $("receipt").classList.toggle("hidden", name !== "receipt");
-
-  // Show only the save button matching the current tab (primary);
-  // hide the off-tab one. "둘 다 저장" stays visible as secondary.
-  const a4Btn  = $("btn-pdf-a4");
-  const recBtn = $("btn-pdf-receipt");
-  a4Btn.style.display  = (name === "a4")      ? "" : "none";
-  recBtn.style.display = (name === "receipt") ? "" : "none";
-  a4Btn.classList.remove("secondary");
-  recBtn.classList.remove("secondary");
 
   fitMobileScale();
 }
@@ -812,29 +814,38 @@ async function prewarmPdfs(){
 document.addEventListener("input",  _invalidateIfChanged);
 document.addEventListener("change", _invalidateIfChanged);
 
-// ----- save handlers (bound by class so form view + preview view share them) -----
-function bindSave(className, asyncFn){
-  document.querySelectorAll("." + className).forEach(btn => {
-    btn.addEventListener("click", e => {
-      withButtonBusy(btn, "생성 중…", asyncFn);
-    });
-  });
-}
-bindSave("save-a4", async ()=>{
-  const blob = await getA4Blob();
-  await savePdfs([{ blob, filename: pdfFilename("") }]);
-});
-bindSave("save-receipt", async ()=>{
-  const blob = await getReceiptBlob();
-  await savePdfs([{ blob, filename: pdfFilename("_모바일용") }]);
-});
-bindSave("save-both", async ()=>{
+// ----- KakaoTalk + SMS share handlers -----
+// Both open the OS share sheet with the PDFs attached.
+// User then picks KakaoTalk / Messages from the share sheet to send.
+async function shareBothPdfs(opts){
   const a4  = await getA4Blob();
   const rec = await getReceiptBlob();
-  await savePdfs([
+  const items = [
     { blob: a4,  filename: pdfFilename("") },
     { blob: rec, filename: pdfFilename("_모바일용") },
-  ]);
+  ];
+  await savePdfs(items);
+  // After share sheet closes, optionally invoke a fallback URL scheme.
+  if(opts && opts.smsFallback){
+    // sms:?body works on iOS+Android — opens Messages app prefilled.
+    // (PDFs don't attach via URL — user already shared them or this is the
+    //  desktop fallback where saving was the primary action.)
+    setTimeout(()=> {
+      try { window.location.href = "sms:?body=" + encodeURIComponent(
+        "부동산 계약금 입금 확인서를 보내드립니다."); } catch(e){}
+    }, 200);
+  }
+}
+
+$("btn-share-kakao").addEventListener("click", ()=>{
+  withButtonBusy($("btn-share-kakao"), "준비 중…", async ()=>{
+    await shareBothPdfs();
+  });
+});
+$("btn-share-sms").addEventListener("click", ()=>{
+  withButtonBusy($("btn-share-sms"), "준비 중…", async ()=>{
+    await shareBothPdfs();
+  });
 });
 
 // ===== bulk paste / image OCR parser =====
