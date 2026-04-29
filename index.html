@@ -589,12 +589,14 @@ function setTab(name){
   $("page").classList.toggle("hidden",    name !== "a4");
   $("receipt").classList.toggle("hidden", name !== "receipt");
 
-  // Whichever save button matches the current tab becomes primary;
-  // the other (and "both") become secondary.
+  // Show only the save button matching the current tab (primary);
+  // hide the off-tab one. "둘 다 저장" stays visible as secondary.
   const a4Btn  = $("btn-pdf-a4");
   const recBtn = $("btn-pdf-receipt");
-  a4Btn.classList.toggle("secondary",  name !== "a4");
-  recBtn.classList.toggle("secondary", name !== "receipt");
+  a4Btn.style.display  = (name === "a4")      ? "" : "none";
+  recBtn.style.display = (name === "receipt") ? "" : "none";
+  a4Btn.classList.remove("secondary");
+  recBtn.classList.remove("secondary");
 
   fitMobileScale();
 }
@@ -617,7 +619,14 @@ window.addEventListener("resize", fitMobileScale);
 const app = document.querySelector(".app");
 function setView(name){
   app.dataset.view = name;
-  if(name === "preview"){ render(); fitMobileScale(); }
+  if(name === "preview"){
+    render();
+    fitMobileScale();
+    // Pre-generate PDFs in background so the next save click on iOS
+    // can call navigator.share within the user activation window
+    // (without awaiting a 1-2s html2canvas render first).
+    prewarmPdfs().catch(e => console.warn("PDF prewarm failed:", e));
+  }
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 // 미리보기 button: auto-runs paste/image parse first (if any), then advances.
@@ -716,25 +725,44 @@ function downloadBlob(blob, filename){
   setTimeout(()=> URL.revokeObjectURL(url), 60_000);
 }
 
-// Save one or more PDFs. On mobile (where navigator.canShare supports files),
-// open the iOS/Android share sheet — user picks "Save to Files", AirDrop, etc.
-// Otherwise fall back to direct download.
+// Save one or more PDFs. On mobile, open the native share sheet (iOS/Android)
+// so the user can send to Files, KakaoTalk, Messages, AirDrop, Mail, etc.
+// On desktop, fall back to a direct download.
 async function savePdfs(items){
-  // items: [{blob, filename}, …]
   const files = items.map(it =>
     new File([it.blob], it.filename, { type:"application/pdf" }));
 
-  if(navigator.canShare && navigator.canShare({ files })){
+  const canShareAll = navigator.canShare && navigator.canShare({ files });
+  console.log("[save] items:", items.length, "canShareAll:", canShareAll);
+
+  // Path 1: share all files at once (iOS 17+ / Android Chrome)
+  if(canShareAll){
     try{
-      await navigator.share({ files,
-        title: items[0].filename.replace(/\.pdf$/, "") });
+      await navigator.share({ files });
       return;
     } catch(e){
-      if(e && e.name === "AbortError") return;     // user cancelled
-      // any other failure → fall through to download
+      if(e && e.name === "AbortError") return;
+      console.warn("[save] multi-share failed:", e);
     }
   }
-  // Desktop / unsupported: download each file
+
+  // Path 2: share files one-by-one (older iOS that supports single-file share)
+  if(items.length > 1
+     && navigator.canShare
+     && navigator.canShare({ files: [files[0]] })){
+    for(const f of files){
+      try{
+        await navigator.share({ files: [f] });
+      } catch(e){
+        if(e && e.name === "AbortError") return;
+        console.warn("[save] single-share failed:", e);
+        break;
+      }
+    }
+    return;
+  }
+
+  // Path 3: download fallback (desktop)
   items.forEach((it, i) =>
     setTimeout(()=> downloadBlob(it.blob, it.filename), i * 250));
 }
@@ -745,6 +773,45 @@ async function withButtonBusy(btn, label, fn){
   try { return await fn(); } finally { btn.disabled = false; btn.textContent = original; }
 }
 
+// ----- PDF cache (so iOS share fires within user-activation window) -----
+let _pdfCache = { snap: "", a4: null, receipt: null };
+
+function _formSnapshot(){
+  // Stringify all form fields + clauses; cache invalidates when this changes
+  const ids = ["f-title","f-address","f-lease","f-lessor","f-lessee",
+               "f-deposit","f-total","f-finaldate","f-date","f-confirm","f-office"];
+  const parts = ids.map(id => $(id).value);
+  document.querySelectorAll("#clause-list .clause-row").forEach(r => {
+    parts.push(r.querySelector('input[type=text]').value);
+    parts.push(r.querySelector("textarea").value);
+  });
+  return parts.join("");
+}
+function _invalidateIfChanged(){
+  const snap = _formSnapshot();
+  if(snap !== _pdfCache.snap){
+    _pdfCache = { snap, a4: null, receipt: null };
+  }
+}
+async function getA4Blob(){
+  _invalidateIfChanged();
+  if(!_pdfCache.a4) _pdfCache.a4 = await buildA4Blob();
+  return _pdfCache.a4;
+}
+async function getReceiptBlob(){
+  _invalidateIfChanged();
+  if(!_pdfCache.receipt) _pdfCache.receipt = await buildReceiptBlob();
+  return _pdfCache.receipt;
+}
+async function prewarmPdfs(){
+  // Run in background; ignore errors here — actual save will surface them.
+  await getA4Blob();
+  await getReceiptBlob();
+}
+// Form edits invalidate the cache so the next save reflects new content
+document.addEventListener("input",  _invalidateIfChanged);
+document.addEventListener("change", _invalidateIfChanged);
+
 // ----- save handlers (bound by class so form view + preview view share them) -----
 function bindSave(className, asyncFn){
   document.querySelectorAll("." + className).forEach(btn => {
@@ -754,16 +821,16 @@ function bindSave(className, asyncFn){
   });
 }
 bindSave("save-a4", async ()=>{
-  const blob = await buildA4Blob();
+  const blob = await getA4Blob();
   await savePdfs([{ blob, filename: pdfFilename("") }]);
 });
 bindSave("save-receipt", async ()=>{
-  const blob = await buildReceiptBlob();
+  const blob = await getReceiptBlob();
   await savePdfs([{ blob, filename: pdfFilename("_모바일용") }]);
 });
 bindSave("save-both", async ()=>{
-  const a4  = await buildA4Blob();
-  const rec = await buildReceiptBlob();
+  const a4  = await getA4Blob();
+  const rec = await getReceiptBlob();
   await savePdfs([
     { blob: a4,  filename: pdfFilename("") },
     { blob: rec, filename: pdfFilename("_모바일용") },
