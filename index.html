@@ -678,6 +678,17 @@ async function ensureKoreanFontReady(){
   _fontsLoadedOnce = true;
 }
 
+// Compute html2canvas scale that compensates for the on-screen visual
+// scale (--page-scale on mobile). Without this, capturing a 50%-scaled
+// preview would produce a half-resolution canvas and blurry/broken text.
+function captureScale(){
+  const cssScale = parseFloat(getComputedStyle(document.documentElement)
+    .getPropertyValue("--page-scale")) || 1;
+  // Target: at least 2x of natural size for sharp text on receivers.
+  const target = 2;
+  return Math.max(target, target / cssScale);
+}
+
 // If preview-view is hidden (form view), temporarily put it offscreen so
 // html2canvas can measure layout. Restore afterward.
 async function withPreviewRendered(fn){
@@ -699,23 +710,29 @@ async function buildA4Blob(){
   const el = $("page");
   const restore = el.classList.contains("hidden");
   el.classList.remove("hidden");
+  const scale = captureScale();
   const canvas = await html2canvas(el, {
-    scale:2, useCORS:true, backgroundColor:"#ffffff",
+    scale, useCORS:true, backgroundColor:"#ffffff",
     windowWidth: el.scrollWidth, windowHeight: el.scrollHeight,
   });
   if(restore) el.classList.add("hidden");
 
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ unit:"mm", format:"a4", orientation:"portrait" });
+  const pdf = new jsPDF({ unit:"mm", format:"a4", orientation:"portrait",
+                          compress:true });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
+  // Convert canvas px -> mm using the current scale (so geometry matches
+  // the source element's natural size, regardless of CSS scaling).
   const PX_TO_MM = 25.4 / 96;
-  const cWmm = canvas.width  * PX_TO_MM / 2;
-  const cHmm = canvas.height * PX_TO_MM / 2;
+  const cWmm = canvas.width  * PX_TO_MM / scale;
+  const cHmm = canvas.height * PX_TO_MM / scale;
   const fit  = Math.min(pageW / cWmm, pageH / cHmm);
   const w = cWmm * fit, h = cHmm * fit;
   const x = (pageW - w) / 2, y = 0;
-  pdf.addImage(canvas.toDataURL("image/jpeg",0.95),"JPEG", x,y,w,h, undefined, "FAST");
+  // PNG = lossless → text stays sharp; FAST is fine since compress:true
+  // already deflates the PNG inside the PDF.
+  pdf.addImage(canvas.toDataURL("image/png"), "PNG", x, y, w, h, undefined, "FAST");
   return pdf.output("blob");
   });
 }
@@ -726,21 +743,23 @@ async function buildReceiptBlob(){
   const el = $("receipt");
   const restore = el.classList.contains("hidden");
   el.classList.remove("hidden");
+  const scale = captureScale();
   const canvas = await html2canvas(el, {
-    scale:2, useCORS:true, backgroundColor:"#ffffff",
+    scale, useCORS:true, backgroundColor:"#ffffff",
     windowWidth: el.scrollWidth, windowHeight: el.scrollHeight,
   });
   if(restore) el.classList.add("hidden");
 
   const PX_TO_MM = 25.4 / 96;
-  const cWmm = canvas.width  * PX_TO_MM / 2;
-  const cHmm = canvas.height * PX_TO_MM / 2;
+  const cWmm = canvas.width  * PX_TO_MM / scale;
+  const cHmm = canvas.height * PX_TO_MM / scale;
   const targetW = 80;                          // 80mm wide
   const targetH = +(cHmm * (targetW / cWmm)).toFixed(2);
 
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ unit:"mm", format:[targetW, targetH], orientation:"portrait" });
-  pdf.addImage(canvas.toDataURL("image/jpeg",0.95),"JPEG", 0,0,targetW,targetH, undefined, "FAST");
+  const pdf = new jsPDF({ unit:"mm", format:[targetW, targetH],
+                          orientation:"portrait", compress:true });
+  pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, targetW, targetH, undefined, "FAST");
   return pdf.output("blob");
   });
 }
