@@ -27,16 +27,35 @@
     font-family:"Noto Sans KR",-apple-system,BlinkMacSystemFont,sans-serif;
     color:var(--ink);font-weight:400;-webkit-text-size-adjust:100%;}
 
-  .app{display:grid;grid-template-columns:380px 1fr;min-height:100vh}
-  @media (max-width:980px){
-    .app{grid-template-columns:1fr;min-height:auto}
-    .panel{max-height:none}
-    .preview-wrap{max-height:none}
-  }
+  /* ===== App shell (single full-width, two views) ===== */
+  .app{display:block;min-height:100vh;
+    max-width:760px;margin:0 auto;padding:18px 18px 36px}
+  @media (max-width:600px){.app{padding:14px}}
 
-  /* ===== Form panel ===== */
-  .panel{background:var(--card);border-right:1px solid var(--rule);
-    padding:24px 22px;overflow-y:auto;max-height:100vh}
+  /* form view <-> preview view */
+  .app[data-view="form"]    .preview-view{display:none}
+  .app[data-view="preview"] .form-view   {display:none}
+
+  /* Off-screen rendering: keep preview laid out for html2canvas
+     when saving directly from the form view. */
+  .preview-view.rendering{display:block !important;
+    position:absolute !important;left:-12000px !important;top:0 !important;
+    width:760px;pointer-events:none}
+
+  /* topbar */
+  .topbar{display:flex;align-items:center;gap:10px;
+    padding:6px 0 14px;margin-bottom:6px}
+  .topbar h1{font-size:16px;font-weight:600;margin:0;letter-spacing:.01em;flex:1}
+  .topbar .sub{display:none}
+  .back-btn{width:auto;padding:6px 12px;font-size:12px;min-height:0;
+    background:transparent;color:var(--navy);
+    border:1px solid var(--field-border);border-radius:6px;cursor:pointer}
+  .back-btn:hover{background:var(--navy-tint)}
+  .app[data-view="form"] .back-btn{display:none}
+
+  /* ===== Form panel (now full-width main view) ===== */
+  .panel{background:var(--card);border:1px solid var(--rule);border-radius:12px;
+    padding:18px}
   .panel h1{font-size:14px;font-weight:600;margin:0 0 4px;letter-spacing:.02em}
   .panel .sub{font-size:12px;color:var(--muted);margin:0 0 18px}
 
@@ -88,12 +107,32 @@
   .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
   .btn-row button{margin-top:0;padding:9px 8px;font-size:12px}
 
-  .actions{position:sticky;bottom:0;background:var(--card);
-    padding:14px 0 4px;margin-top:18px;border-top:1px solid var(--rule)}
+  /* collapsible advanced editor */
+  .editor-toggle{margin:14px 0 0}
+  .editor-toggle > summary{
+    cursor:pointer;list-style:none;
+    padding:11px 14px;background:#f5f5f4;border-radius:8px;
+    font-size:13px;font-weight:500;color:var(--ink);
+    user-select:none;transition:background .15s;
+    display:flex;align-items:center;gap:8px}
+  .editor-toggle > summary::-webkit-details-marker{display:none}
+  .editor-toggle > summary:hover{background:#ececea}
+  .editor-toggle > summary::before{
+    content:"▶";font-size:10px;color:var(--muted);
+    transition:transform .15s;display:inline-block}
+  .editor-toggle[open] > summary::before{transform:rotate(90deg)}
+  .editor-toggle[open] > summary{margin-bottom:6px}
+  .editor-toggle .summary-hint{font-size:11px;color:var(--muted);
+    font-weight:400;margin-left:auto}
+
+  .actions{padding:14px 0 0;margin-top:18px;border-top:1px solid var(--rule)}
+  .preview-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;
+    padding-top:14px;border-top:1px solid var(--rule)}
+  .preview-actions button{flex:1;min-width:140px;width:auto}
+  .preview-actions .full{flex:1 0 100%;min-width:0}
 
   /* ===== Preview area ===== */
-  .preview-wrap{padding:24px 28px 36px;overflow-y:auto;max-height:100vh}
-  @media (max-width:980px){.preview-wrap{padding:14px}}
+  .preview-wrap{padding:0}
 
   .tabs{display:flex;gap:4px;margin:0 auto 18px;max-width:210mm;
     background:#ececea;border-radius:8px;padding:4px}
@@ -110,12 +149,9 @@
   .page{background:#fff;width:210mm;min-height:297mm;
     padding:18mm 18mm 22mm;
     box-shadow:0 1px 3px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.06);
-    color:var(--ink);position:relative;flex-shrink:0;}
-  /* mobile: scale A4 down to fit viewport */
-  @media (max-width:880px){
-    .page{transform:scale(var(--page-scale,.45));transform-origin:top center}
-    .stage[data-tab=a4]{height:calc(297mm * var(--page-scale,.45) + 12mm)}
-  }
+    color:var(--ink);position:relative;flex-shrink:0;
+    transform:scale(var(--page-scale,1));transform-origin:top center}
+  .stage[data-tab=a4]{height:calc(297mm * var(--page-scale,1) + 12mm)}
 
   /* receipt */
   .receipt{background:#fff;width:80mm;padding:8mm 7mm;
@@ -205,9 +241,8 @@
   @media print{
     @page{size:A4;margin:0}
     html,body{margin:0;padding:0;background:#fff}
-    .panel,.tabs,.receipt{display:none}
-    .preview-wrap{padding:0}
-    .app{display:block}
+    .topbar,.form-view,.tabs,.receipt,.preview-actions{display:none !important}
+    .preview-wrap,.app{padding:0;max-width:none}
     .stage{display:block}
     .page{box-shadow:none;width:210mm;height:297mm;min-height:0;
       padding:14mm;page-break-after:avoid;break-after:avoid;overflow:hidden;
@@ -217,12 +252,17 @@
 </head>
 <body>
 
-<div class="app">
+<div class="app" data-view="form">
 
-  <!-- ============= FORM ============= -->
+  <header class="topbar">
+    <button type="button" class="back-btn" id="btn-back-to-form">← 폼으로 돌아가기</button>
+    <h1 id="topbar-title">부동산 계약금 입금 확인서</h1>
+  </header>
+
+  <!-- ============= FORM VIEW ============= -->
+  <section class="form-view">
   <aside class="panel">
-    <h1>부동산 계약금 입금 확인서</h1>
-    <p class="sub">A4 + 영수증 두 가지 형식으로 동시에 PDF가 생성됩니다.</p>
+    <p class="sub" style="margin:0 0 14px">계약 내용을 붙여넣고 바로 PDF를 저장하세요.</p>
 
     <!-- Bulk import -->
     <div class="group-title">데이터 가져오기</div>
@@ -234,11 +274,11 @@
         <input type="file" id="img-upload" accept="image/*" />
         <span class="file" id="img-name">선택된 파일 없음</span>
       </div>
-      <div class="import-row">
-        <button type="button" id="btn-parse">양식 채우기</button>
-      </div>
       <div class="import-status" id="import-status"></div>
     </div>
+
+    <details class="editor-toggle">
+    <summary>✏️ 직접 수정<span class="summary-hint">필드 편집</span></summary>
 
     <!-- Title -->
     <div class="group-title">문서</div>
@@ -308,21 +348,20 @@
     <label>중개사 사무소 (큰 글씨)</label>
     <input type="text" id="f-office" value="대방디엠시티공인중개사사무소" />
 
+    </details>
+
     <div class="actions">
-      <button type="button" id="btn-pdf-both">PDF 다운로드 (A4 + 영수증)</button>
-      <div class="btn-row">
-        <button type="button" class="secondary" id="btn-pdf-a4">A4만</button>
-        <button type="button" class="secondary" id="btn-pdf-receipt">영수증만</button>
-      </div>
-      <button type="button" class="secondary" id="btn-print">인쇄 / 브라우저로 PDF 저장</button>
+      <button type="button" id="btn-to-preview">👁 미리보기 →</button>
     </div>
   </aside>
+  </section>
 
-  <!-- ============= PREVIEW ============= -->
+  <!-- ============= PREVIEW VIEW ============= -->
+  <section class="preview-view">
   <main class="preview-wrap">
     <div class="tabs" role="tablist">
       <button class="tab active" data-tab="a4"      type="button">A4</button>
-      <button class="tab"        data-tab="receipt" type="button">영수증</button>
+      <button class="tab"        data-tab="receipt" type="button">모바일용</button>
     </div>
 
     <div class="stage" id="stage" data-tab="a4">
@@ -428,7 +467,16 @@
       </div>
 
     </div>
+
+    <div class="preview-actions">
+      <button type="button" class="secondary" id="btn-back-2">← 돌아가기</button>
+      <button type="button" class="save-a4"      id="btn-pdf-a4">A4 저장</button>
+      <button type="button" class="secondary save-receipt" id="btn-pdf-receipt">모바일용 저장</button>
+      <button type="button" class="secondary full save-both" id="btn-pdf-both">A4 + 모바일용 둘 다 저장</button>
+    </div>
+
   </main>
+  </section>
 
 </div>
 
@@ -540,26 +588,52 @@ function setTab(name){
   });
   $("page").classList.toggle("hidden",    name !== "a4");
   $("receipt").classList.toggle("hidden", name !== "receipt");
-  // Update mobile scale for whichever is shown
+
+  // Whichever save button matches the current tab becomes primary;
+  // the other (and "both") become secondary.
+  const a4Btn  = $("btn-pdf-a4");
+  const recBtn = $("btn-pdf-receipt");
+  a4Btn.classList.toggle("secondary",  name !== "a4");
+  recBtn.classList.toggle("secondary", name !== "receipt");
+
   fitMobileScale();
 }
 document.querySelectorAll(".tab").forEach(b=>{
   b.addEventListener("click", ()=> setTab(b.dataset.tab));
 });
 
-// On narrow screens, scale the A4 preview down to fit viewport width
+// Scale the A4 preview down to fit the container width on small screens
 function fitMobileScale(){
   const vw = Math.min(window.innerWidth, document.documentElement.clientWidth);
-  if(vw < 880){
-    const usable = vw - 28;            // padding
-    const a4w   = 794;                  // 210mm at 96dpi
-    const scale = Math.min(1, usable / a4w);
-    document.documentElement.style.setProperty("--page-scale", scale.toFixed(3));
-  } else {
-    document.documentElement.style.setProperty("--page-scale", "1");
-  }
+  const containerMax = 760;
+  const usable = Math.min(vw, containerMax) - 36;  // app padding
+  const a4w   = 794;                                // 210mm at 96dpi
+  const scale = Math.min(1, usable / a4w);
+  document.documentElement.style.setProperty("--page-scale", scale.toFixed(3));
 }
 window.addEventListener("resize", fitMobileScale);
+
+// ===== View switching (form <-> preview) =====
+const app = document.querySelector(".app");
+function setView(name){
+  app.dataset.view = name;
+  if(name === "preview"){ render(); fitMobileScale(); }
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+// 미리보기 button: auto-runs paste/image parse first (if any), then advances.
+$("btn-to-preview").addEventListener("click", ()=>{
+  withButtonBusy($("btn-to-preview"), "처리 중…", async ()=>{
+    try {
+      await runImportIfAny();
+      setView("preview");
+    } catch(err){
+      // parse failed — stay on form, surface the error
+      setStatus("실패: " + (err && err.message || err), "err");
+    }
+  });
+});
+$("btn-back-to-form").addEventListener("click", ()=> setView("form"));
+$("btn-back-2").addEventListener("click", ()=> setView("form"));
 
 // ===== PDF generation =====
 function pdfFilename(suffix){
@@ -567,10 +641,25 @@ function pdfFilename(suffix){
   return `${t}${suffix}.pdf`;
 }
 
+// If preview-view is hidden (form view), temporarily put it offscreen so
+// html2canvas can measure layout. Restore afterward.
+async function withPreviewRendered(fn){
+  const view = document.querySelector(".preview-view");
+  const wasHidden = getComputedStyle(view).display === "none";
+  if(wasHidden){
+    render();                                 // sync from current form
+    view.classList.add("rendering");
+    // ensure layout is computed before html2canvas reads it
+    await new Promise(r => requestAnimationFrame(r));
+  }
+  try { return await fn(); }
+  finally { if(wasHidden) view.classList.remove("rendering"); }
+}
+
 async function buildA4Blob(){
   if(document.fonts && document.fonts.ready){ await document.fonts.ready; }
+  return await withPreviewRendered(async ()=>{
   const el = $("page");
-  // ensure page is visible while we render
   const restore = el.classList.contains("hidden");
   el.classList.remove("hidden");
   const canvas = await html2canvas(el, {
@@ -591,10 +680,12 @@ async function buildA4Blob(){
   const x = (pageW - w) / 2, y = 0;
   pdf.addImage(canvas.toDataURL("image/jpeg",0.95),"JPEG", x,y,w,h, undefined, "FAST");
   return pdf.output("blob");
+  });
 }
 
 async function buildReceiptBlob(){
   if(document.fonts && document.fonts.ready){ await document.fonts.ready; }
+  return await withPreviewRendered(async ()=>{
   const el = $("receipt");
   const restore = el.classList.contains("hidden");
   el.classList.remove("hidden");
@@ -614,6 +705,7 @@ async function buildReceiptBlob(){
   const pdf = new jsPDF({ unit:"mm", format:[targetW, targetH], orientation:"portrait" });
   pdf.addImage(canvas.toDataURL("image/jpeg",0.95),"JPEG", 0,0,targetW,targetH, undefined, "FAST");
   return pdf.output("blob");
+  });
 }
 
 function downloadBlob(blob, filename){
@@ -623,35 +715,60 @@ function downloadBlob(blob, filename){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=> URL.revokeObjectURL(url), 60_000);
 }
+
+// Save one or more PDFs. On mobile (where navigator.canShare supports files),
+// open the iOS/Android share sheet — user picks "Save to Files", AirDrop, etc.
+// Otherwise fall back to direct download.
+async function savePdfs(items){
+  // items: [{blob, filename}, …]
+  const files = items.map(it =>
+    new File([it.blob], it.filename, { type:"application/pdf" }));
+
+  if(navigator.canShare && navigator.canShare({ files })){
+    try{
+      await navigator.share({ files,
+        title: items[0].filename.replace(/\.pdf$/, "") });
+      return;
+    } catch(e){
+      if(e && e.name === "AbortError") return;     // user cancelled
+      // any other failure → fall through to download
+    }
+  }
+  // Desktop / unsupported: download each file
+  items.forEach((it, i) =>
+    setTimeout(()=> downloadBlob(it.blob, it.filename), i * 250));
+}
+
 async function withButtonBusy(btn, label, fn){
   const original = btn.textContent;
   btn.disabled = true; btn.textContent = label;
   try { return await fn(); } finally { btn.disabled = false; btn.textContent = original; }
 }
 
-// ----- buttons -----
-$("btn-pdf-both").addEventListener("click", ()=>{
-  withButtonBusy($("btn-pdf-both"), "생성 중…", async ()=>{
-    const a4  = await buildA4Blob();
-    const rec = await buildReceiptBlob();
-    downloadBlob(a4,  pdfFilename(""));
-    setTimeout(()=> downloadBlob(rec, pdfFilename("_영수증")), 250);
+// ----- save handlers (bound by class so form view + preview view share them) -----
+function bindSave(className, asyncFn){
+  document.querySelectorAll("." + className).forEach(btn => {
+    btn.addEventListener("click", e => {
+      withButtonBusy(btn, "생성 중…", asyncFn);
+    });
   });
+}
+bindSave("save-a4", async ()=>{
+  const blob = await buildA4Blob();
+  await savePdfs([{ blob, filename: pdfFilename("") }]);
 });
-$("btn-pdf-a4").addEventListener("click", ()=>{
-  withButtonBusy($("btn-pdf-a4"), "생성 중…", async ()=>{
-    const blob = await buildA4Blob();
-    downloadBlob(blob, pdfFilename(""));
-  });
+bindSave("save-receipt", async ()=>{
+  const blob = await buildReceiptBlob();
+  await savePdfs([{ blob, filename: pdfFilename("_모바일용") }]);
 });
-$("btn-pdf-receipt").addEventListener("click", ()=>{
-  withButtonBusy($("btn-pdf-receipt"), "생성 중…", async ()=>{
-    const blob = await buildReceiptBlob();
-    downloadBlob(blob, pdfFilename("_영수증"));
-  });
+bindSave("save-both", async ()=>{
+  const a4  = await buildA4Blob();
+  const rec = await buildReceiptBlob();
+  await savePdfs([
+    { blob: a4,  filename: pdfFilename("") },
+    { blob: rec, filename: pdfFilename("_모바일용") },
+  ]);
 });
-
-$("btn-print").addEventListener("click", ()=> window.print());
 
 // ===== bulk paste / image OCR parser =====
 const CLAUSE_MARKS = "가나다라마바사아자차";
@@ -719,45 +836,38 @@ $("img-upload").addEventListener("change", e=>{
   const f = e.target.files[0];
   $("img-name").textContent = f ? f.name : "선택된 파일 없음";
 });
-$("btn-parse").addEventListener("click", async ()=>{
+
+// Try to parse current paste/image; returns true if anything happened.
+// Throws on parse failure (so caller can decide whether to advance).
+async function runImportIfAny(){
   const pasted = $("paste-area").value.trim();
   const file   = $("img-upload").files[0];
-  if(!pasted && !file){
-    setStatus("텍스트를 붙여넣거나 이미지를 업로드하세요.", "err");
-    return;
-  }
-  await withButtonBusy($("btn-parse"), "처리 중…", async ()=>{
-    let text = pasted;
-    try {
-      if(!text && file){
-        if(typeof Tesseract === "undefined"){
-          throw new Error("OCR 라이브러리를 불러오지 못했습니다 (인터넷 연결 확인).");
-        }
-        setStatus("이미지 인식 중… (최초 실행 시 한국어 데이터 다운로드)", "");
-        const result = await Tesseract.recognize(file, "kor+eng", {
-          logger: m => {
-            if(m.status === "recognizing text"){
-              setStatus(`이미지 인식 중… ${Math.round((m.progress||0)*100)}%`, "");
-            } else if(m.status){
-              setStatus("이미지 인식 중… (" + m.status + ")", "");
-            }
-          }
-        });
-        text = (result && result.data && result.data.text) || "";
-        if(!text.trim()) throw new Error("이미지에서 텍스트를 추출하지 못했습니다.");
-        $("paste-area").value = text;
-      }
-      const n = applyParsed(parseContractText(text));
-      if(n === 0){
-        setStatus("인식된 항목이 없습니다. 형식을 확인하세요.", "err");
-      } else {
-        setStatus(`${n}개 항목을 채웠습니다.`, "ok");
-      }
-    } catch(err){
-      setStatus("실패: " + (err && err.message || err), "err");
+  if(!pasted && !file) return false;       // nothing to parse, treat as ok
+
+  let text = pasted;
+  if(!text && file){
+    if(typeof Tesseract === "undefined"){
+      throw new Error("OCR 라이브러리를 불러오지 못했습니다 (인터넷 연결 확인).");
     }
-  });
-});
+    setStatus("이미지 인식 중… (최초 실행 시 한국어 데이터 다운로드)", "");
+    const result = await Tesseract.recognize(file, "kor+eng", {
+      logger: m => {
+        if(m.status === "recognizing text"){
+          setStatus(`이미지 인식 중… ${Math.round((m.progress||0)*100)}%`, "");
+        } else if(m.status){
+          setStatus("이미지 인식 중… (" + m.status + ")", "");
+        }
+      }
+    });
+    text = (result && result.data && result.data.text) || "";
+    if(!text.trim()) throw new Error("이미지에서 텍스트를 추출하지 못했습니다.");
+    $("paste-area").value = text;
+  }
+  const n = applyParsed(parseContractText(text));
+  if(n === 0) throw new Error("인식된 항목이 없습니다. 형식을 확인하세요.");
+  setStatus(`${n}개 항목을 채웠습니다.`, "ok");
+  return true;
+}
 
 render();
 fitMobileScale();
