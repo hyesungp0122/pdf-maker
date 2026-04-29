@@ -10,10 +10,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 
-<!-- Load html2canvas and jsPDF directly so they're reliably global on iOS Safari
-     (the html2pdf.bundle wrapper sometimes doesn't expose html2canvas globally) -->
+<!-- html2canvas: DOM → high-res PNG canvas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
 
 <style>
@@ -654,10 +652,10 @@ $("btn-to-preview").addEventListener("click", ()=>{
 $("btn-back-to-form").addEventListener("click", ()=> setView("form"));
 $("btn-back-2").addEventListener("click", ()=> setView("form"));
 
-// ===== PDF generation =====
-function pdfFilename(suffix){
+// ===== Image (PNG) generation =====
+function pdfFilename(suffix){      // kept name for compat; emits .png now
   const t = ($("f-title").value || "계약확인서").replace(/[\\/:*?"<>|]/g, " ");
-  return `${t}${suffix}.pdf`;
+  return `${t}${suffix}.png`;
 }
 
 // Explicitly load all Noto Sans KR weights we use, then wait for the
@@ -680,12 +678,14 @@ async function ensureKoreanFontReady(){
 
 // Compute html2canvas scale that compensates for the on-screen visual
 // scale (--page-scale on mobile). Without this, capturing a 50%-scaled
-// preview would produce a half-resolution canvas and blurry/broken text.
+// preview would produce a half-resolution canvas and blurry text.
+//
+// Target 4x of natural size — that's ~384 DPI for an A4 page, sharp even
+// when the receiver pinch-zooms.
 function captureScale(){
   const cssScale = parseFloat(getComputedStyle(document.documentElement)
     .getPropertyValue("--page-scale")) || 1;
-  // Target: at least 2x of natural size for sharp text on receivers.
-  const target = 2;
+  const target = 4;
   return Math.max(target, target / cssScale);
 }
 
@@ -704,65 +704,29 @@ async function withPreviewRendered(fn){
   finally { if(wasHidden) view.classList.remove("rendering"); }
 }
 
-async function buildA4Blob(){
+// Render an element to a high-resolution PNG blob.
+async function renderElementToPng(elId){
   await ensureKoreanFontReady();
   return await withPreviewRendered(async ()=>{
-  const el = $("page");
-  const restore = el.classList.contains("hidden");
-  el.classList.remove("hidden");
-  const scale = captureScale();
-  const canvas = await html2canvas(el, {
-    scale, useCORS:true, backgroundColor:"#ffffff",
-    windowWidth: el.scrollWidth, windowHeight: el.scrollHeight,
-  });
-  if(restore) el.classList.add("hidden");
-
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ unit:"mm", format:"a4", orientation:"portrait",
-                          compress:true });
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
-  // Convert canvas px -> mm using the current scale (so geometry matches
-  // the source element's natural size, regardless of CSS scaling).
-  const PX_TO_MM = 25.4 / 96;
-  const cWmm = canvas.width  * PX_TO_MM / scale;
-  const cHmm = canvas.height * PX_TO_MM / scale;
-  const fit  = Math.min(pageW / cWmm, pageH / cHmm);
-  const w = cWmm * fit, h = cHmm * fit;
-  const x = (pageW - w) / 2, y = 0;
-  // PNG = lossless → text stays sharp; FAST is fine since compress:true
-  // already deflates the PNG inside the PDF.
-  pdf.addImage(canvas.toDataURL("image/png"), "PNG", x, y, w, h, undefined, "FAST");
-  return pdf.output("blob");
+    const el = $(elId);
+    const restore = el.classList.contains("hidden");
+    el.classList.remove("hidden");
+    const scale = captureScale();
+    const canvas = await html2canvas(el, {
+      scale, useCORS:true, backgroundColor:"#ffffff",
+      windowWidth: el.scrollWidth, windowHeight: el.scrollHeight,
+    });
+    if(restore) el.classList.add("hidden");
+    return await new Promise((resolve, reject) => {
+      canvas.toBlob(
+        b => b ? resolve(b) : reject(new Error("PNG 생성 실패")),
+        "image/png"
+      );
+    });
   });
 }
-
-async function buildReceiptBlob(){
-  await ensureKoreanFontReady();
-  return await withPreviewRendered(async ()=>{
-  const el = $("receipt");
-  const restore = el.classList.contains("hidden");
-  el.classList.remove("hidden");
-  const scale = captureScale();
-  const canvas = await html2canvas(el, {
-    scale, useCORS:true, backgroundColor:"#ffffff",
-    windowWidth: el.scrollWidth, windowHeight: el.scrollHeight,
-  });
-  if(restore) el.classList.add("hidden");
-
-  const PX_TO_MM = 25.4 / 96;
-  const cWmm = canvas.width  * PX_TO_MM / scale;
-  const cHmm = canvas.height * PX_TO_MM / scale;
-  const targetW = 80;                          // 80mm wide
-  const targetH = +(cHmm * (targetW / cWmm)).toFixed(2);
-
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ unit:"mm", format:[targetW, targetH],
-                          orientation:"portrait", compress:true });
-  pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, targetW, targetH, undefined, "FAST");
-  return pdf.output("blob");
-  });
-}
+async function buildA4Blob()      { return renderElementToPng("page");    }
+async function buildReceiptBlob() { return renderElementToPng("receipt"); }
 
 function downloadBlob(blob, filename){
   const url = URL.createObjectURL(blob);
@@ -785,7 +749,7 @@ function setShareStatus(msg, kind){
 // On desktop, fall back to direct download.
 async function savePdfs(items){
   const files = items.map(it =>
-    new File([it.blob], it.filename, { type:"application/pdf" }));
+    new File([it.blob], it.filename, { type:"image/png" }));
 
   // Diagnose support up-front and show on screen
   const hasShare    = typeof navigator.share === "function";
@@ -901,7 +865,7 @@ document.addEventListener("change", _invalidateIfChanged);
 // User then picks KakaoTalk / Messages from the share sheet to send.
 async function shareCurrentPdf(){
   try {
-    setShareStatus("PDF 생성 중…");
+    setShareStatus("이미지 생성 중…");
     const tab = stage.dataset.tab;  // "a4" or "receipt"
     let blob, suffix;
     if(tab === "receipt"){
@@ -914,7 +878,7 @@ async function shareCurrentPdf(){
     await savePdfs([{ blob, filename: pdfFilename(suffix) }]);
   } catch(err){
     console.error("[share] error:", err);
-    setShareStatus("PDF 생성 실패: " + (err && err.message || err), "err");
+    setShareStatus("이미지 생성 실패: " + (err && err.message || err), "err");
   }
 }
 
