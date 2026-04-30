@@ -43,10 +43,38 @@
     position:absolute !important;left:-12000px !important;top:0 !important;
     width:760px;pointer-events:none}
 
+  /* main app title */
+  .main-header{padding:8px 0 14px;text-align:center;margin-bottom:12px;
+    border-bottom:1px solid var(--rule)}
+  .main-header h1{font-size:18px;font-weight:700;margin:0;
+    color:var(--navy);letter-spacing:.01em}
+
+  /* parent tabs (계약금 / 잔금) */
+  .parent-tabs{display:flex;gap:6px;margin-bottom:22px}
+  .parent-tab{flex:1;height:48px;padding:0 14px;font-size:13.5px;
+    font-weight:600;background:#f5f5f4;color:var(--muted);
+    border:1px solid var(--rule);border-radius:10px;cursor:pointer;
+    transition:all .15s;display:inline-flex;align-items:center;
+    justify-content:center;gap:8px;width:auto}
+  .parent-tab:hover{background:#ececea;color:var(--ink)}
+  .parent-tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .parent-tab.active:hover{background:var(--navy-soft);color:#fff}
+
+  /* section switching */
+  .section{display:none}
+  .section.active{display:block}
+
+  /* placeholder card (잔금 내역서 stub) */
+  .placeholder-card{background:#fafafa;border:1px dashed var(--rule);
+    border-radius:12px;padding:48px 24px;text-align:center}
+  .placeholder-card h2{margin:0 0 8px;font-size:17px;font-weight:600;
+    color:var(--ink)}
+  .placeholder-card p{margin:0;font-size:13px;color:var(--muted);
+    line-height:1.6}
+
   /* topbar */
   .topbar{display:flex;align-items:center;gap:10px;
     padding:6px 0 14px;margin-bottom:6px}
-  .topbar h1{font-size:16px;font-weight:600;margin:0;letter-spacing:.01em;flex:1}
   .topbar .sub{display:none}
   .back-btn{width:auto;height:32px;padding:0 12px;font-size:12px;
     background:transparent;color:var(--navy);
@@ -73,6 +101,11 @@
 
   .clause-row{display:grid;grid-template-columns:48px 1fr 28px;gap:8px;
     align-items:start;margin-bottom:8px}
+  .amount-row{display:grid;grid-template-columns:1fr 1fr 28px;gap:8px;
+    align-items:start;margin-bottom:8px}
+  .account-card{background:var(--gray-cell);color:var(--ink);
+    padding:14px 16px;font-size:13.5px;font-weight:500;
+    border-radius:10px;margin-bottom:30px}
   .clause-row input[type=text]{padding:6px 8px;text-align:center;font-size:12px}
   .clause-del{width:32px;height:32px;padding:0;background:transparent;
     color:var(--muted);border:1px solid var(--field-border);border-radius:6px;
@@ -202,8 +235,7 @@
   /* --- A4 clauses --- */
   .section-title{display:flex;align-items:center;gap:8px;
     font-size:14px;font-weight:600;color:var(--ink);margin:0 0 12px}
-  .section-bar{width:4px;height:16px;background:var(--navy);border-radius:1px}
-  .clauses-box{background:var(--gray-cell);border-radius:10px;
+.clauses-box{background:var(--gray-cell);border-radius:10px;
     padding:18px 22px;margin-bottom:36px}
   .clause{font-size:12px;line-height:1.75;color:var(--ink);margin-bottom:8px}
   .clause:last-child{margin-bottom:0}
@@ -267,9 +299,24 @@
 
 <div class="app" data-view="form">
 
+  <header class="main-header">
+    <h1>하정's 대방디엠시티 툴</h1>
+  </header>
+
+  <nav class="parent-tabs" role="tablist">
+    <button type="button" class="parent-tab active" data-section="confirmation">
+      계약금 입금 확인서
+    </button>
+    <button type="button" class="parent-tab" data-section="balance">
+      잔금 내역서
+    </button>
+  </nav>
+
+  <!-- ============= 계약금 입금 확인서 SECTION ============= -->
+  <div class="section active" data-section-content="confirmation">
+
   <header class="topbar">
-    <button type="button" class="back-btn" id="btn-back-to-form">← 폼으로 돌아가기</button>
-    <h1 id="topbar-title">부동산 계약금 입금 확인서</h1>
+    <button type="button" class="back-btn js-back">← 폼으로 돌아가기</button>
   </header>
 
   <!-- ============= FORM VIEW ============= -->
@@ -296,7 +343,7 @@
     <!-- Title -->
     <div class="group-title">문서</div>
     <label>문서 제목</label>
-    <input type="text" id="f-title" value="부동산 계약금 일부 입금 확인서" />
+    <input type="text" id="f-title" data-title-source value="부동산 계약금 일부 입금 확인서" />
 
     <!-- Property fields -->
     <div class="group-title">계약 정보</div>
@@ -341,7 +388,7 @@
       </div>
       <div class="clause-row">
         <input type="text" value="나." />
-        <textarea>임차인의 현장 답사 후 한 사실을 상대에서의 계약이며 본 세대는 &lt;b&gt;애완동물 동반, 실내 촬영, 못질, 벽스티커 부착&lt;/b&gt;을 임차자 금지한다.</textarea>
+        <textarea>임차인의 현장 답사 후 한 사실을 상대에서의 계약이며 본 세대는 **애완동물 동반, 실내 촬영, 못질, 벽스티커 부착**을 임차자 금지한다.</textarea>
         <button type="button" class="clause-del" title="이 항목 삭제">✕</button>
       </div>
       <div class="clause-row">
@@ -364,7 +411,7 @@
     </details>
 
     <div class="actions">
-      <button type="button" id="btn-to-preview">👁 미리보기 →</button>
+      <button type="button" class="js-to-preview">👁 미리보기 →</button>
     </div>
   </aside>
   </section>
@@ -377,10 +424,10 @@
       <button class="tab"        data-tab="receipt" type="button">모바일용</button>
     </div>
 
-    <div class="stage" id="stage" data-tab="a4">
+    <div class="stage" data-tab="a4">
 
       <!-- A4 -->
-      <div class="page" id="page">
+      <div class="page">
         <div class="brand"><img class="brand-img logo-img" alt="대방디엠시티부동산" /></div>
         <div class="brand-rule"></div>
         <h1 class="doc-title" id="p-title"></h1>
@@ -411,7 +458,7 @@
           </div>
         </div>
         <div class="section-title">
-          <span class="section-bar"></span><span>거래 약정 내용</span>
+          <span>거래 약정 내용</span>
         </div>
         <div class="clauses-box" id="p-clauses"></div>
         <div class="foot">
@@ -425,7 +472,7 @@
       </div>
 
       <!-- Receipt -->
-      <div class="receipt hidden" id="receipt">
+      <div class="receipt hidden">
         <img class="r-logo logo-img" alt="대방디엠시티부동산" />
         <hr class="r-rule" />
         <h1 class="r-title" id="r-title"></h1>
@@ -482,18 +529,210 @@
     </div>
 
     <div class="preview-actions">
-      <button type="button" class="secondary" id="btn-back-2">← 돌아가기</button>
-      <button type="button" id="btn-share">
+      <button type="button" class="secondary js-back">← 돌아가기</button>
+      <button type="button" class="js-share">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
         </svg>
         공유하기
       </button>
-      <div class="share-status full" id="share-status"></div>
+      <div class="share-status full"></div>
     </div>
 
   </main>
   </section>
+
+  </div><!-- /계약금 입금 확인서 section -->
+
+  <!-- ============= 잔금 내역서 SECTION ============= -->
+  <div class="section" data-section-content="balance">
+
+  <header class="topbar">
+    <button type="button" class="back-btn js-back">← 폼으로 돌아가기</button>
+  </header>
+
+  <!-- ============= BALANCE FORM VIEW ============= -->
+  <section class="form-view">
+  <aside class="panel">
+    <p class="sub" style="margin:0 0 14px">잔금 내역을 입력하고 PNG로 공유하세요.</p>
+
+    <!-- Bulk import -->
+    <div class="group-title">데이터 가져오기</div>
+    <div class="import-box">
+      <label>전체 내용을 붙여넣으세요</label>
+      <textarea id="bf-paste" placeholder="예) 소재지 : ...&#10;전세 보증금 : ..." style="min-height:90px"></textarea>
+      <div class="import-status" id="bf-import-status"></div>
+    </div>
+
+    <details class="editor-toggle">
+    <summary>✏️ 직접 수정<span class="summary-hint">필드 편집</span></summary>
+
+    <div class="group-title">문서</div>
+    <label>문서 제목</label>
+    <input type="text" id="bf-title" data-title-source value="잔금 내역서" />
+
+    <div class="group-title">계약 정보</div>
+    <label>소재지</label>
+    <textarea id="bf-address">서울특별시 강서구 방화동 620-129 펜타곤스카이 제5층 제502호</textarea>
+
+    <label>전세 보증금</label>
+    <input type="text" id="bf-deposit" value="300,000,000원" />
+
+    <div class="group-title">납부된 금액</div>
+    <div id="bf-paid-list">
+      <div class="amount-row">
+        <input type="text" placeholder="항목" value="계약금" />
+        <input type="text" placeholder="금액" value="15,000,000원" />
+        <button type="button" class="clause-del" title="삭제">✕</button>
+      </div>
+    </div>
+    <button type="button" class="secondary" id="bf-add-paid">+ 항목 추가</button>
+
+    <div class="group-title">납부할 금액</div>
+    <div id="bf-topay-list">
+      <div class="amount-row">
+        <input type="text" placeholder="항목" value="대출 실행금" />
+        <input type="text" placeholder="금액" value="160,000,000원" />
+        <button type="button" class="clause-del" title="삭제">✕</button>
+      </div>
+      <div class="amount-row">
+        <input type="text" placeholder="항목" value="현금 입금액" />
+        <input type="text" placeholder="금액" value="125,000,000원" />
+        <button type="button" class="clause-del" title="삭제">✕</button>
+      </div>
+    </div>
+    <button type="button" class="secondary" id="bf-add-topay">+ 항목 추가</button>
+
+    <div class="group-title">기타</div>
+    <label>임대인 계좌번호</label>
+    <input type="text" id="bf-account" value="하나은행 366-910010-03804 정기돈" />
+
+    <label>날짜</label>
+    <input type="text" id="bf-date" value="" />
+
+    <label>확인 문구</label>
+    <input type="text" id="bf-confirm" value="위와 같이 잔금 내역을 안내드립니다." />
+
+    <label>중개사 사무소 (큰 글씨)</label>
+    <input type="text" id="bf-office" value="대방디엠시티공인중개사사무소" />
+
+    </details>
+
+    <div class="actions">
+      <button type="button" class="js-to-preview">👁 미리보기 →</button>
+    </div>
+  </aside>
+  </section>
+
+  <!-- ============= BALANCE PREVIEW VIEW ============= -->
+  <section class="preview-view">
+  <main class="preview-wrap">
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="a4"      type="button">A4</button>
+      <button class="tab"        data-tab="receipt" type="button">모바일용</button>
+    </div>
+
+    <div class="stage" data-tab="a4">
+
+      <!-- A4 -->
+      <div class="page">
+        <div class="brand"><img class="brand-img logo-img" alt="대방디엠시티부동산" /></div>
+        <div class="brand-rule"></div>
+        <h1 class="doc-title" id="bp-title"></h1>
+
+        <div class="grid">
+          <div class="grid-row r1">
+            <div class="label-cell">소재지</div>
+            <div class="value-cell" id="bp-address"></div>
+          </div>
+          <div class="grid-row r1">
+            <div class="label-cell">전세 보증금</div>
+            <div class="value-cell" id="bp-deposit"></div>
+          </div>
+        </div>
+
+        <div class="section-title">
+          <span>납부된 금액</span>
+        </div>
+        <div class="grid" id="bp-paid"></div>
+
+        <div class="section-title">
+          <span>납부할 금액</span>
+        </div>
+        <div class="grid" id="bp-topay"></div>
+
+        <div class="section-title">
+          <span>임대인 계좌번호</span>
+        </div>
+        <div class="account-card" id="bp-account"></div>
+
+        <div class="foot">
+          <div class="foot-date" id="bp-date"></div>
+          <div class="foot-text" id="bp-confirm"></div>
+          <div class="foot-office-wrap">
+            <span class="foot-office" id="bp-office"></span>
+            <span class="stamp"><img class="stamp-img" alt="도장" /></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Receipt -->
+      <div class="receipt hidden">
+        <img class="r-logo logo-img" alt="대방디엠시티부동산" />
+        <hr class="r-rule" />
+        <h1 class="r-title" id="br-title"></h1>
+        <hr class="r-rule" />
+
+        <div class="r-row">
+          <div class="r-key">소재지</div>
+          <div class="r-val" id="br-address"></div>
+        </div>
+        <div class="r-row">
+          <div class="r-key">전세 보증금</div>
+          <div class="r-val" id="br-deposit"></div>
+        </div>
+
+        <hr class="r-rule" />
+        <div class="r-section">납부된 금액</div>
+        <div id="br-paid"></div>
+
+        <hr class="r-rule" />
+        <div class="r-section">납부할 금액</div>
+        <div id="br-topay"></div>
+
+        <hr class="r-rule" />
+        <div class="r-section">임대인 계좌번호</div>
+        <div class="r-val" id="br-account"></div>
+
+        <hr class="r-rule" />
+
+        <div class="r-foot">
+          <div class="r-foot-date" id="br-date"></div>
+          <div class="r-foot-text" id="br-confirm"></div>
+          <div class="r-foot-office-wrap">
+            <span class="r-foot-office" id="br-office"></span>
+            <span class="r-stamp"><img class="stamp-img" alt="도장" /></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="preview-actions">
+      <button type="button" class="secondary js-back">← 돌아가기</button>
+      <button type="button" class="js-share">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+        </svg>
+        공유하기
+      </button>
+      <div class="share-status full"></div>
+    </div>
+
+  </main>
+  </section>
+
+  </div><!-- /잔금 내역서 section -->
 
 </div>
 
@@ -505,13 +744,33 @@ document.querySelectorAll(".logo-img").forEach(el => el.src = LOGO_DATA);
 document.querySelectorAll(".stamp-img").forEach(el => el.src = STAMP_DATA);
 
 function $(id){return document.getElementById(id);}
+// Section-scoped helpers — return elements within the currently-active
+// .section so confirmation and balance sections can share structural class
+// names (.page, .receipt, .stage) without ID conflicts.
+function activeSec(){ return document.querySelector(".section.active"); }
+function $S(sel){ return activeSec().querySelector(sel); }
 function esc(s){return (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+// Render clause text safely. Stores raw markdown in textareas
+// (e.g. **bold**) — render-time converts to <b>...</b> after HTML escape,
+// so user-typed asterisks never collide with HTML escaping.
 function clauseHtml(s){
-  return esc(s).replace(/&lt;b&gt;/g,"<b>").replace(/&lt;\/b&gt;/g,"</b>");
+  return esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
 }
 
-// ===== render both A4 + receipt from the form fields =====
+// ===== Section dispatcher =====
+function activeSectionName(){
+  return activeSec()?.dataset.sectionContent || "confirmation";
+}
+
+// Run all section renders; only the visible one matters but rendering both
+// keeps the cached preview elements in sync if user switches sections.
 function render(){
+  renderConfirmation();
+  if (typeof renderBalance === "function") renderBalance();
+}
+
+// ===== Confirmation render: A4 + receipt from confirmation form fields =====
+function renderConfirmation(){
   const title = $("f-title").value;
   const addr  = $("f-address").value;
   const lease = $("f-lease").value;
@@ -588,6 +847,176 @@ $("btn-add-clause").addEventListener("click", ()=>{
   render();
 });
 
+// =====================================================================
+//  잔금 내역서 section (balance)
+// =====================================================================
+
+// helper to build amount rows (label + amount + delete)
+function buildAmountRow(label, amount){
+  const row = document.createElement("div");
+  row.className = "amount-row";
+  const a = document.createElement("input");
+  a.type = "text"; a.placeholder = "항목"; a.value = label || "";
+  const b = document.createElement("input");
+  b.type = "text"; b.placeholder = "금액"; b.value = amount || "";
+  const d = document.createElement("button");
+  d.type = "button"; d.className = "clause-del";
+  d.title = "삭제"; d.textContent = "✕";
+  row.appendChild(a); row.appendChild(b); row.appendChild(d);
+  return row;
+}
+
+// add/remove paid + topay items
+$("bf-add-paid").addEventListener("click", ()=>{
+  $("bf-paid-list").appendChild(buildAmountRow());
+  render();
+});
+$("bf-add-topay").addEventListener("click", ()=>{
+  $("bf-topay-list").appendChild(buildAmountRow());
+  render();
+});
+// delete handlers (event delegation, mirrors clause-list)
+["bf-paid-list","bf-topay-list"].forEach(id => {
+  $(id).addEventListener("click", e => {
+    const btn = e.target.closest(".clause-del");
+    if(!btn) return;
+    const row = btn.closest(".amount-row");
+    if(row){ row.remove(); render(); }
+  });
+});
+
+function _amountRowsAsHtml(listId, klass){
+  // returns HTML string for grid card containing label/amount rows
+  const rows = $(listId).querySelectorAll(".amount-row");
+  let h = "";
+  rows.forEach(r => {
+    const inputs = r.querySelectorAll('input[type=text]');
+    const label = inputs[0]?.value.trim();
+    const amount = inputs[1]?.value.trim();
+    if(label || amount){
+      h += `<div class="grid-row r1">
+        <div class="label-cell">${esc(label)}</div>
+        <div class="value-cell ${klass||""}">${esc(amount)}</div>
+      </div>`;
+    }
+  });
+  return h;
+}
+function _amountRowsAsReceipt(listId){
+  // single column receipt-style: label key + amount value
+  const rows = $(listId).querySelectorAll(".amount-row");
+  let h = "";
+  rows.forEach(r => {
+    const inputs = r.querySelectorAll('input[type=text]');
+    const label = inputs[0]?.value.trim();
+    const amount = inputs[1]?.value.trim();
+    if(label || amount){
+      h += `<div class="r-row">
+        <div class="r-key">${esc(label)}</div>
+        <div class="r-val">${esc(amount)}</div>
+      </div>`;
+    }
+  });
+  return h;
+}
+
+function renderBalance(){
+  const title   = $("bf-title").value;
+  const addr    = $("bf-address").value;
+  const deposit = $("bf-deposit").value;
+  const account = $("bf-account").value;
+  const date    = $("bf-date").value;
+  const conf    = $("bf-confirm").value;
+  const office  = $("bf-office").value;
+
+  // A4
+  $("bp-title").textContent     = title;
+  $("bp-address").textContent   = addr;
+  $("bp-deposit").textContent   = deposit;
+  $("bp-account").textContent   = account;
+  $("bp-date").textContent      = date;
+  $("bp-confirm").textContent   = conf;
+  $("bp-office").textContent    = office;
+  $("bp-paid").innerHTML        = _amountRowsAsHtml("bf-paid-list");
+  $("bp-topay").innerHTML       = _amountRowsAsHtml("bf-topay-list", "red");
+
+  // Receipt
+  $("br-title").textContent     = title;
+  $("br-address").textContent   = addr;
+  $("br-deposit").textContent   = deposit;
+  $("br-account").textContent   = account;
+  $("br-date").textContent      = date;
+  $("br-confirm").textContent   = conf;
+  $("br-office").textContent    = office;
+  $("br-paid").innerHTML        = _amountRowsAsReceipt("bf-paid-list");
+  $("br-topay").innerHTML       = _amountRowsAsReceipt("bf-topay-list");
+}
+
+// Parser for the balance text format:
+//   소재지 : ...
+//   전세 보증금 : ...
+//   <납부된 금액>
+//   계약금 : ...
+//   <납부할 금액>
+//   대출 실행금 : ...
+//   현금 입금액 : ...
+//   임대인 계좌번호 : ...
+function parseBalanceText(text){
+  if(!text || !text.trim()) return null;
+  const out = { address:null, deposit:null, account:null, paid:[], topay:[] };
+
+  function pickAfter(label){
+    const re = new RegExp("(?:^|\\n)\\s*" + label + "\\s*[:：]\\s*([^\\n]+)");
+    const m = text.match(re);
+    return m ? m[1].trim() : null;
+  }
+
+  out.address = pickAfter("소재지");
+  out.deposit = pickAfter("전세\\s*보증금");
+  out.account = pickAfter("임대인\\s*계좌번호");
+
+  // sections delimited by <납부된 금액> / <납부할 금액>
+  function sectionItems(headerRe, endRe){
+    const startMatch = text.match(headerRe);
+    if(!startMatch) return [];
+    const start = startMatch.index + startMatch[0].length;
+    const tail = text.slice(start);
+    const endMatch = endRe ? tail.match(endRe) : null;
+    const body = endMatch ? tail.slice(0, endMatch.index) : tail;
+    const items = [];
+    body.split(/\n/).forEach(line => {
+      const m = line.match(/^\s*([^:：\n]+?)\s*[:：]\s*(.+?)\s*$/);
+      if(m) items.push({ label: m[1].trim(), amount: m[2].trim() });
+    });
+    return items;
+  }
+
+  out.paid  = sectionItems(/<\s*납부된\s*금액\s*>/, /<\s*납부할\s*금액\s*>|임대인\s*계좌번호/);
+  out.topay = sectionItems(/<\s*납부할\s*금액\s*>/, /임대인\s*계좌번호/);
+
+  return out;
+}
+
+function applyBalanceParsed(parsed){
+  if(!parsed) return 0;
+  let n = 0;
+  if(parsed.address){ $("bf-address").value = parsed.address; n++; }
+  if(parsed.deposit){ $("bf-deposit").value = parsed.deposit; n++; }
+  if(parsed.account){ $("bf-account").value = parsed.account; n++; }
+  if(parsed.paid.length){
+    const list = $("bf-paid-list");
+    list.innerHTML = "";
+    parsed.paid.forEach(it => { list.appendChild(buildAmountRow(it.label, it.amount)); n++; });
+  }
+  if(parsed.topay.length){
+    const list = $("bf-topay-list");
+    list.innerHTML = "";
+    parsed.topay.forEach(it => { list.appendChild(buildAmountRow(it.label, it.amount)); n++; });
+  }
+  render();
+  return n;
+}
+
 // delete clause (event delegation — works for default rows + dynamically added)
 $("clause-list").addEventListener("click", e=>{
   const btn = e.target.closest(".clause-del");
@@ -597,19 +1026,38 @@ $("clause-list").addEventListener("click", e=>{
 });
 
 // ===== Tabs =====
-const stage = $("stage");
 function setTab(name){
-  stage.dataset.tab = name;
+  // Apply to ALL stages (every section has its own) so the next time
+  // the user switches sections, the tab choice is preserved.
+  document.querySelectorAll(".stage").forEach(s => s.dataset.tab = name);
   document.querySelectorAll(".tab").forEach(b=>{
     b.classList.toggle("active", b.dataset.tab === name);
   });
-  $("page").classList.toggle("hidden",    name !== "a4");
-  $("receipt").classList.toggle("hidden", name !== "receipt");
+  document.querySelectorAll(".page").forEach(p =>
+    p.classList.toggle("hidden", name !== "a4"));
+  document.querySelectorAll(".receipt").forEach(r =>
+    r.classList.toggle("hidden", name !== "receipt"));
 
   fitMobileScale();
 }
 document.querySelectorAll(".tab").forEach(b=>{
   b.addEventListener("click", ()=> setTab(b.dataset.tab));
+});
+function currentTab(){
+  return $S(".stage")?.dataset.tab || "a4";
+}
+
+// ===== Parent section switching (계약금 / 잔금) =====
+function setSection(name){
+  document.querySelectorAll(".parent-tab").forEach(b => {
+    b.classList.toggle("active", b.dataset.section === name);
+  });
+  document.querySelectorAll("[data-section-content]").forEach(s => {
+    s.classList.toggle("active", s.dataset.sectionContent === name);
+  });
+}
+document.querySelectorAll(".parent-tab").forEach(b => {
+  b.addEventListener("click", () => setSection(b.dataset.section));
 });
 
 // Scale the A4 preview down to fit the container width on small screens
@@ -637,24 +1085,29 @@ function setView(name){
   }
   window.scrollTo({ top: 0, behavior: "instant" });
 }
-// 미리보기 button: auto-runs paste/image parse first (if any), then advances.
-$("btn-to-preview").addEventListener("click", ()=>{
-  withButtonBusy($("btn-to-preview"), "처리 중…", async ()=>{
-    try {
-      await runImportIfAny();
-      setView("preview");
-    } catch(err){
-      // parse failed — stay on form, surface the error
-      setStatus("실패: " + (err && err.message || err), "err");
-    }
+// 미리보기 buttons (one per section) — auto-run parse if any, then advance.
+document.querySelectorAll(".js-to-preview").forEach(btn => {
+  btn.addEventListener("click", ()=>{
+    withButtonBusy(btn, "처리 중…", async ()=>{
+      try {
+        await runImportIfAny();
+        setView("preview");
+      } catch(err){
+        setStatus("실패: " + (err && err.message || err), "err");
+      }
+    });
   });
 });
-$("btn-back-to-form").addEventListener("click", ()=> setView("form"));
-$("btn-back-2").addEventListener("click", ()=> setView("form"));
+
+// Back buttons (topbar + preview-actions, both sections)
+document.querySelectorAll(".js-back").forEach(btn => {
+  btn.addEventListener("click", ()=> setView("form"));
+});
 
 // ===== Image (PNG) generation =====
 function pdfFilename(suffix){      // kept name for compat; emits .png now
-  const t = ($("f-title").value || "계약확인서").replace(/[\\/:*?"<>|]/g, " ");
+  const titleEl = $S("[data-title-source]");  // section's title input
+  const t = ((titleEl && titleEl.value) || "문서").replace(/[\\/:*?"<>|]/g, " ");
   return `${t}${suffix}.png`;
 }
 
@@ -705,10 +1158,9 @@ async function withPreviewRendered(fn){
 }
 
 // Render an element to a high-resolution PNG blob.
-async function renderElementToPng(elId){
+async function renderElementToPng(el){
   await ensureKoreanFontReady();
   return await withPreviewRendered(async ()=>{
-    const el = $(elId);
     const restore = el.classList.contains("hidden");
     el.classList.remove("hidden");
     const scale = captureScale();
@@ -725,8 +1177,8 @@ async function renderElementToPng(elId){
     });
   });
 }
-async function buildA4Blob()      { return renderElementToPng("page");    }
-async function buildReceiptBlob() { return renderElementToPng("receipt"); }
+async function buildA4Blob()      { return renderElementToPng($S(".page"));    }
+async function buildReceiptBlob() { return renderElementToPng($S(".receipt")); }
 
 function downloadBlob(blob, filename){
   const url = URL.createObjectURL(blob);
@@ -738,7 +1190,7 @@ function downloadBlob(blob, filename){
 
 // ---- visible share-status helper ----
 function setShareStatus(msg, kind){
-  const el = $("share-status");
+  const el = $S(".share-status");
   if(!el) return;
   el.innerHTML = msg || "";
   el.className = "share-status full" + (kind ? " " + kind : "");
@@ -751,52 +1203,46 @@ async function savePdfs(items){
   const files = items.map(it =>
     new File([it.blob], it.filename, { type:"image/png" }));
 
-  // Diagnose support up-front and show on screen
-  const hasShare    = typeof navigator.share === "function";
-  const hasCanShare = typeof navigator.canShare === "function";
-  const canAll      = hasCanShare && navigator.canShare({ files });
-  const canOne      = hasCanShare && navigator.canShare({ files: [files[0]] });
-  console.log("[save]", { items: items.length, hasShare, hasCanShare, canAll, canOne });
+  const hasShare = typeof navigator.share === "function";
+  console.log("[save]", { items: items.length, hasShare,
+    canShareAll: navigator.canShare && navigator.canShare({ files }) });
 
   if(!hasShare){
-    setShareStatus("이 브라우저는 공유 기능을 지원하지 않습니다." +
-      "<span class='hint'>iPhone Safari, Android Chrome에서 다시 시도하세요.</span>", "err");
+    setShareStatus("이 브라우저는 공유를 지원하지 않습니다 — 다운로드로 대체합니다", "err");
     items.forEach((it, i) =>
       setTimeout(()=> downloadBlob(it.blob, it.filename), i * 250));
     return;
   }
 
-  // Path 1: share all files at once (iOS 17+ / Android Chrome)
-  if(canAll){
-    try{
-      setShareStatus("공유시트 여는 중…");
-      await navigator.share({ files });
-      setShareStatus("✓ 전송 완료", "ok");
+  // Try sharing all files at once. We deliberately DO NOT gate on
+  // navigator.canShare — some Android browsers report false even when
+  // share works, and that bug was sending users to the download path.
+  try{
+    setShareStatus("공유시트 여는 중…");
+    await navigator.share({ files });
+    setShareStatus("✓ 전송 완료", "ok");
+    return;
+  } catch(e){
+    if(e && e.name === "AbortError"){
+      setShareStatus("취소됨");
       return;
-    } catch(e){
-      if(e && e.name === "AbortError"){
-        setShareStatus("취소됨");
-        return;
-      }
-      console.warn("[save] multi-share failed:", e);
-      setShareStatus("다중 공유 실패: " + (e && e.message || e) +
-        "<span class='hint'>한 번에 한 파일씩 시도합니다…</span>", "err");
     }
+    console.warn("[save] multi-share failed:", e);
   }
 
-  // Path 2: share files one-by-one (older iOS that supports single-file share)
-  if(items.length > 1 && canOne){
+  // Single-file retry (multi-file share unsupported on some older Androids)
+  if(items.length > 1){
+    setShareStatus("한 번에 한 파일씩 시도…");
     for(let i = 0; i < files.length; i++){
       try{
-        setShareStatus(`공유시트 여는 중… (${i + 1}/${files.length})`);
         await navigator.share({ files: [files[i]] });
       } catch(e){
-        if(e && e.name === "AbortError"){
-          setShareStatus("취소됨");
-          return;
-        }
+        if(e && e.name === "AbortError"){ setShareStatus("취소됨"); return; }
         console.warn("[save] single-share failed:", e);
         setShareStatus("공유 실패: " + (e && e.message || e), "err");
+        // fall through to download
+        items.slice(i).forEach((it, j) =>
+          setTimeout(()=> downloadBlob(it.blob, it.filename), j * 250));
         return;
       }
     }
@@ -804,13 +1250,8 @@ async function savePdfs(items){
     return;
   }
 
-  // Path 3: not supported here — explain and fall back to download
-  if(!canAll && !canOne){
-    setShareStatus(
-      "이 브라우저에서 PDF 공유가 지원되지 않습니다." +
-      "<span class='hint'>iOS 15 이상 / 최신 Android Chrome 필요. " +
-      "대신 PDF를 다운로드하니 직접 카톡·문자에 첨부해주세요.</span>", "err");
-  }
+  // Final fallback: download
+  setShareStatus("공유 불가 — 다운로드로 대체합니다", "err");
   items.forEach((it, i) =>
     setTimeout(()=> downloadBlob(it.blob, it.filename), i * 250));
 }
@@ -821,35 +1262,44 @@ async function withButtonBusy(btn, label, fn){
   try { return await fn(); } finally { btn.disabled = false; btn.textContent = original; }
 }
 
-// ----- PDF cache (so iOS share fires within user-activation window) -----
-let _pdfCache = { snap: "", a4: null, receipt: null };
+// ----- PDF cache, per-section (so iOS share fires within user-activation,
+//        and balance edits don't invalidate confirmation, etc) -----
+const _cacheBySection = {};
+function _getCache(){
+  const s = activeSectionName();
+  if(!_cacheBySection[s]) _cacheBySection[s] = { snap: "", a4: null, receipt: null };
+  return _cacheBySection[s];
+}
 
 function _formSnapshot(){
-  // Stringify all form fields + clauses; cache invalidates when this changes
-  const ids = ["f-title","f-address","f-lease","f-lessor","f-lessee",
-               "f-deposit","f-total","f-finaldate","f-date","f-confirm","f-office"];
-  const parts = ids.map(id => $(id).value);
-  document.querySelectorAll("#clause-list .clause-row").forEach(r => {
-    parts.push(r.querySelector('input[type=text]').value);
-    parts.push(r.querySelector("textarea").value);
-  });
+  // Snapshot all inputs/textareas in the active section; cache invalidates
+  // when any value changes. Per-section keeps balance and confirmation isolated.
+  const sec = activeSec();
+  if(!sec) return "";
+  const parts = [];
+  sec.querySelectorAll("input[type=text], textarea").forEach(el => parts.push(el.value));
   return parts.join("");
 }
 function _invalidateIfChanged(){
+  const cache = _getCache();
   const snap = _formSnapshot();
-  if(snap !== _pdfCache.snap){
-    _pdfCache = { snap, a4: null, receipt: null };
+  if(snap !== cache.snap){
+    cache.snap = snap;
+    cache.a4 = null;
+    cache.receipt = null;
   }
 }
 async function getA4Blob(){
   _invalidateIfChanged();
-  if(!_pdfCache.a4) _pdfCache.a4 = await buildA4Blob();
-  return _pdfCache.a4;
+  const cache = _getCache();
+  if(!cache.a4) cache.a4 = await buildA4Blob();
+  return cache.a4;
 }
 async function getReceiptBlob(){
   _invalidateIfChanged();
-  if(!_pdfCache.receipt) _pdfCache.receipt = await buildReceiptBlob();
-  return _pdfCache.receipt;
+  const cache = _getCache();
+  if(!cache.receipt) cache.receipt = await buildReceiptBlob();
+  return cache.receipt;
 }
 async function prewarmPdfs(){
   // Run in background; ignore errors here — actual save will surface them.
@@ -866,7 +1316,7 @@ document.addEventListener("change", _invalidateIfChanged);
 async function shareCurrentPdf(){
   try {
     setShareStatus("이미지 생성 중…");
-    const tab = stage.dataset.tab;  // "a4" or "receipt"
+    const tab = currentTab();  // "a4" or "receipt"
     let blob, suffix;
     if(tab === "receipt"){
       blob   = await getReceiptBlob();
@@ -882,9 +1332,12 @@ async function shareCurrentPdf(){
   }
 }
 
-$("btn-share").addEventListener("click", ()=>{
-  withButtonBusy($("btn-share"), "준비 중…", async ()=>{
-    await shareCurrentPdf();
+// Share buttons (one per section) — bound by class so both sections share logic
+document.querySelectorAll(".js-share").forEach(btn => {
+  btn.addEventListener("click", ()=>{
+    withButtonBusy(btn, "준비 중…", async ()=>{
+      await shareCurrentPdf();
+    });
   });
 });
 
@@ -899,7 +1352,8 @@ function parseContractText(text){
     const re = new RegExp("(?:^|\\n)\\s*" + n + "\\.\\s*([^\\n:：]+?)\\s*[:：]\\s*([^\\n]+)");
     const m = text.match(re);
     if(m){
-      let value = m[2].trim().replace(/\*\*(.+?)\*\*/g, "$1");
+      // strip ** wrappers but keep inner text (field values are textContent)
+      const value = m[2].trim().replace(/\*\*(.+?)\*\*/g, "$1");
       out.fields[n] = { label: m[1].trim(), value };
     }
   }
@@ -908,8 +1362,9 @@ function parseContractText(text){
   const cre = new RegExp("(?:^|\\n)\\s*([" + CLAUSE_MARKS + "])\\.\\s*([^\\n]+(?:\\n(?![" + CLAUSE_MARKS + "]\\.|\\s*※)[^\\n]+)*)", "g");
   let m;
   while((m = cre.exec(body)) !== null){
-    let txt = m[2].replace(/\s+/g," ").trim().replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
-    txt = txt.replace(/<b>/g,"&lt;b&gt;").replace(/<\/b>/g,"&lt;/b&gt;");
+    // Keep raw **bold** markdown in the stored text — clauseHtml() will
+    // convert it at render time. This avoids double-escape issues.
+    const txt = m[2].replace(/\s+/g," ").trim();
     out.clauses.push({ mark: m[1] + ".", text: txt });
   }
   const om = text.match(/※\s*(.+)/);
@@ -958,32 +1413,54 @@ $("img-upload").addEventListener("change", e=>{
 // Try to parse current paste/image; returns true if anything happened.
 // Throws on parse failure (so caller can decide whether to advance).
 async function runImportIfAny(){
-  const pasted = $("paste-area").value.trim();
-  const file   = $("img-upload").files[0];
-  if(!pasted && !file) return false;       // nothing to parse, treat as ok
+  const sectionName = activeSectionName();
+  const isBalance   = sectionName === "balance";
+
+  // section-scoped paste textarea + image upload (only confirmation has image)
+  const pasteEl  = isBalance ? $("bf-paste") : $("paste-area");
+  const fileInput= isBalance ? null : $("img-upload");
+  const pasted   = pasteEl.value.trim();
+  const file     = fileInput ? fileInput.files[0] : null;
+  if(!pasted && !file) return false;
+
+  // status setter routed to the active section
+  const setStatusAny = (msg, kind) => {
+    if(isBalance){
+      const el = $("bf-import-status");
+      if(el){ el.textContent = msg || ""; el.className = "import-status" + (kind ? " " + kind : ""); }
+    } else {
+      setStatus(msg, kind);
+    }
+  };
 
   let text = pasted;
   if(!text && file){
     if(typeof Tesseract === "undefined"){
       throw new Error("OCR 라이브러리를 불러오지 못했습니다 (인터넷 연결 확인).");
     }
-    setStatus("이미지 인식 중… (최초 실행 시 한국어 데이터 다운로드)", "");
+    setStatusAny("이미지 인식 중… (최초 실행 시 한국어 데이터 다운로드)", "");
     const result = await Tesseract.recognize(file, "kor+eng", {
       logger: m => {
         if(m.status === "recognizing text"){
-          setStatus(`이미지 인식 중… ${Math.round((m.progress||0)*100)}%`, "");
+          setStatusAny(`이미지 인식 중… ${Math.round((m.progress||0)*100)}%`, "");
         } else if(m.status){
-          setStatus("이미지 인식 중… (" + m.status + ")", "");
+          setStatusAny("이미지 인식 중… (" + m.status + ")", "");
         }
       }
     });
     text = (result && result.data && result.data.text) || "";
     if(!text.trim()) throw new Error("이미지에서 텍스트를 추출하지 못했습니다.");
-    $("paste-area").value = text;
+    pasteEl.value = text;
   }
-  const n = applyParsed(parseContractText(text));
+
+  let n;
+  if(isBalance){
+    n = applyBalanceParsed(parseBalanceText(text));
+  } else {
+    n = applyParsed(parseContractText(text));
+  }
   if(n === 0) throw new Error("인식된 항목이 없습니다. 형식을 확인하세요.");
-  setStatus(`${n}개 항목을 채웠습니다.`, "ok");
+  setStatusAny(`${n}개 항목을 채웠습니다.`, "ok");
   return true;
 }
 
