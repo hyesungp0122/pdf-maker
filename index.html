@@ -16,22 +16,30 @@
 
 <style>
   :root{
-    --ink:#1a1a1a; --muted:#6b6b6b; --rule:#e2e2e2;
-    --bg:#f5f5f4; --card:#ffffff;
-    --navy:#1e2a52; --navy-soft:#2a3a6e; --navy-tint:#eef0f6;
-    --gray-cell:#f1f1f0;
-    --red:#c0392b;
-    --field-bg:#fafafa; --field-border:#e5e5e5;
+    --ink:#111827; --ink-2:#374151; --muted:#6b7280; --muted-2:#9ca3af;
+    --rule:#eef0f3; --rule-strong:#e5e7eb;
+    --bg:#f7f8fa; --card:#ffffff;
+    --navy:#1e2a52; --navy-soft:#2a3a6e; --navy-tint:#eef1f7;
+    --gray-cell:#f3f4f6;
+    --red:#dc2626;
+    --field-bg:#f9fafb; --field-border:#e5e7eb; --field-focus-ring:rgba(30,42,82,.16);
+    --shadow-sm:0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 1px 3px rgba(15,23,42,.06), 0 8px 24px rgba(15,23,42,.04);
+    --shadow-lg:0 4px 12px rgba(15,23,42,.08), 0 16px 32px rgba(15,23,42,.06);
+    --radius-sm:8px; --radius:12px; --radius-lg:16px; --radius-xl:20px;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);
-    font-family:"Noto Sans KR",-apple-system,BlinkMacSystemFont,sans-serif;
-    color:var(--ink);font-weight:400;-webkit-text-size-adjust:100%;}
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",
+      "Pretendard","Noto Sans KR","Apple SD Gothic Neo",sans-serif;
+    color:var(--ink);font-weight:400;-webkit-text-size-adjust:100%;
+    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+    letter-spacing:-.011em;}
 
   /* ===== App shell (single full-width, two views) ===== */
   .app{display:block;min-height:100vh;
-    max-width:760px;margin:0 auto;padding:18px 18px 36px}
-  @media (max-width:600px){.app{padding:14px}}
+    max-width:760px;margin:0 auto;padding:24px 20px 48px}
+  @media (max-width:600px){.app{padding:18px 14px 36px}}
 
   /* form view <-> preview view */
   .app[data-view="form"]    .preview-view{display:none}
@@ -44,21 +52,27 @@
     width:760px;pointer-events:none}
 
   /* main app title */
-  .main-header{padding:8px 0 14px;text-align:center;margin-bottom:12px;
-    border-bottom:1px solid var(--rule)}
-  .main-header h1{font-size:18px;font-weight:700;margin:0;
-    color:var(--navy);letter-spacing:.01em}
+  .main-header{padding:0 0 24px;text-align:left;margin-bottom:6px}
+  .main-header h1{font-size:24px;font-weight:700;margin:0;
+    color:var(--ink);letter-spacing:-.02em;line-height:1.25}
+  .main-header .meta{font-size:13px;color:var(--muted);margin-top:6px;
+    letter-spacing:-.005em}
 
-  /* parent tabs (계약금 / 잔금) */
-  .parent-tabs{display:flex;gap:6px;margin-bottom:22px}
-  .parent-tab{flex:1;height:48px;padding:0 14px;font-size:13.5px;
-    font-weight:600;background:#f5f5f4;color:var(--muted);
-    border:1px solid var(--rule);border-radius:10px;cursor:pointer;
-    transition:all .15s;display:inline-flex;align-items:center;
-    justify-content:center;gap:8px;width:auto}
-  .parent-tab:hover{background:#ececea;color:var(--ink)}
-  .parent-tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
-  .parent-tab.active:hover{background:var(--navy-soft);color:#fff}
+  /* parent tabs — Toss-style segmented control */
+  .parent-tabs{display:inline-flex;gap:0;margin-bottom:28px;
+    background:#eef0f3;padding:4px;border-radius:12px;width:100%;
+    box-sizing:border-box}
+  .parent-tab{flex:1;height:40px;padding:0 14px;font-size:13.5px;
+    font-weight:600;background:transparent;color:var(--muted);
+    border:0;border-radius:9px;cursor:pointer;
+    transition:color .15s, background .15s, box-shadow .15s, transform .08s;
+    display:inline-flex;align-items:center;
+    justify-content:center;gap:8px;width:auto;letter-spacing:-.01em}
+  .parent-tab:hover{color:var(--ink-2)}
+  .parent-tab:active{transform:scale(.98)}
+  .parent-tab.active{background:#fff;color:var(--ink);
+    box-shadow:0 1px 2px rgba(15,23,42,.06),0 1px 3px rgba(15,23,42,.04)}
+  .parent-tab.active:hover{color:var(--ink)}
 
   /* section switching */
   .section{display:none}
@@ -74,94 +88,129 @@
 
   /* topbar */
   .topbar{display:flex;align-items:center;gap:10px;
-    padding:6px 0 14px;margin-bottom:6px}
+    padding:0 0 14px;margin-bottom:6px}
   .topbar .sub{display:none}
-  .back-btn{width:auto;height:32px;padding:0 12px;font-size:12px;
-    background:transparent;color:var(--navy);
-    border:1px solid var(--field-border);border-radius:6px;cursor:pointer;
-    display:inline-flex;align-items:center;gap:0}
-  .back-btn:hover{background:var(--navy-tint)}
+  .back-btn{width:auto;height:36px;padding:0 14px;font-size:13px;font-weight:500;
+    background:transparent;color:var(--ink-2);
+    border:1px solid var(--rule-strong);border-radius:999px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:0;letter-spacing:-.005em;
+    transition:background .15s, border-color .15s}
+  .back-btn:hover{background:var(--field-bg);border-color:#d8dbe1}
   .app[data-view="form"] .back-btn{display:none}
 
-  /* ===== Form panel (now full-width main view) ===== */
-  .panel{background:var(--card);border:1px solid var(--rule);border-radius:12px;
-    padding:18px}
-  .panel h1{font-size:14px;font-weight:600;margin:0 0 4px;letter-spacing:.02em}
-  .panel .sub{font-size:12px;color:var(--muted);margin:0 0 18px}
+  /* ===== Form panel ===== */
+  .panel{background:var(--card);border-radius:var(--radius-lg);
+    padding:22px;box-shadow:var(--shadow-md)}
+  .panel h1{font-size:14px;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+  .panel .sub{font-size:13.5px;color:var(--muted);margin:0 0 20px;
+    line-height:1.5;letter-spacing:-.01em}
 
-  .group-title{font-size:11px;font-weight:600;color:var(--muted);
-    text-transform:uppercase;letter-spacing:.08em;margin:18px 0 8px}
-  label{display:block;font-size:11px;color:var(--muted);margin:8px 0 4px}
-  input[type=text],textarea{width:100%;padding:9px 10px;font:inherit;font-size:13px;
+  .group-title{font-size:13px;font-weight:600;color:var(--ink-2);
+    margin:24px 0 10px;letter-spacing:-.01em}
+  label{display:block;font-size:12.5px;color:var(--muted);margin:10px 0 6px;
+    font-weight:500;letter-spacing:-.005em}
+  input[type=text],textarea{width:100%;padding:11px 13px;font:inherit;font-size:14px;
     background:var(--field-bg);border:1px solid var(--field-border);
-    border-radius:6px;color:var(--ink);transition:border-color .15s}
-  input[type=text]:focus,textarea:focus{outline:none;border-color:var(--navy)}
-  textarea{min-height:60px;resize:vertical;line-height:1.5}
-  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    border-radius:var(--radius-sm);color:var(--ink);
+    transition:border-color .15s, box-shadow .15s, background .15s;
+    letter-spacing:-.005em;line-height:1.4}
+  input[type=text]:focus,textarea:focus{outline:none;
+    border-color:var(--navy);background:#fff;
+    box-shadow:0 0 0 4px var(--field-focus-ring)}
+  input[type=text]::placeholder,textarea::placeholder{color:var(--muted-2)}
+  textarea{min-height:72px;resize:vertical;line-height:1.55}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-  .clause-row{display:grid;grid-template-columns:48px 1fr 28px;gap:8px;
-    align-items:start;margin-bottom:8px}
-  .amount-row{display:grid;grid-template-columns:1fr 1fr 28px;gap:8px;
-    align-items:start;margin-bottom:8px}
-  .account-card{background:var(--gray-cell);color:var(--ink);
-    padding:14px 16px;font-size:13.5px;font-weight:500;
-    border-radius:10px;margin-bottom:30px}
-  .clause-row input[type=text]{padding:6px 8px;text-align:center;font-size:12px}
-  .clause-del{width:32px;height:32px;padding:0;background:transparent;
-    color:var(--muted);border:1px solid var(--field-border);border-radius:6px;
-    font-size:12px;line-height:1;cursor:pointer;align-self:start;
-    display:inline-flex;align-items:center;justify-content:center}
-  .clause-del:hover{color:#c0392b;border-color:#e2c8c5;background:#fdf6f5}
+  .clause-row{display:grid;grid-template-columns:52px 1fr 36px;gap:10px;
+    align-items:start;margin-bottom:10px}
+  .amount-row{display:grid;grid-template-columns:1fr 1fr 36px;gap:10px;
+    align-items:start;margin-bottom:10px}
+  .account-card{background:var(--gray-cell);border-radius:12px;
+    padding:16px 18px;margin-bottom:32px;
+    font-size:13px;color:var(--ink);line-height:1.55;
+    letter-spacing:-.005em}
 
-  .import-box{background:#fafafa;border:1px dashed #d4d4d4;border-radius:8px;
-    padding:10px 10px 12px;margin-bottom:14px}
-  .import-box label{margin-top:0}
-  .import-row{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}
-  .import-row .file{flex:1;font-size:11px;color:var(--muted);overflow:hidden;
+  /* receipt-style account block */
+  .r-account{background:#f3f5fa;border-radius:6px;padding:2mm 2.5mm;
+    text-align:center;margin-top:1mm}
+  .r-account .acc-bank{font-size:7.5px;color:var(--muted);font-weight:600;
+    letter-spacing:.05em;text-transform:uppercase}
+  .r-account .acc-number{font-size:11px;font-weight:700;color:var(--ink);
+    margin-top:.6mm;font-variant-numeric:tabular-nums;
+    letter-spacing:-.005em;line-height:1.25}
+  .r-account .acc-holder{font-size:8.5px;color:var(--ink-2);font-weight:500;
+    margin-top:.6mm}
+  .clause-row input[type=text]{padding:9px 8px;text-align:center;
+    font-size:12.5px;font-weight:600}
+  .clause-del{width:36px;height:36px;padding:0;background:transparent;
+    color:var(--muted);border:1px solid var(--rule-strong);
+    border-radius:var(--radius-sm);font-size:13px;line-height:1;cursor:pointer;
+    align-self:start;
+    display:inline-flex;align-items:center;justify-content:center;
+    transition:all .12s;box-shadow:none}
+  .clause-del:hover{color:var(--red);border-color:#fbcaca;background:#fef2f2;
+    box-shadow:none}
+
+  .import-box{background:var(--field-bg);border:1px solid var(--rule);
+    border-radius:var(--radius);padding:14px 14px 16px;margin-bottom:12px}
+  .import-box label{margin-top:0;font-size:12.5px}
+  .import-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  .import-row .file{flex:1;font-size:12px;color:var(--muted);overflow:hidden;
     text-overflow:ellipsis;white-space:nowrap;min-width:0}
-  .import-row button{width:auto;padding:7px 12px;font-size:11.5px}
+  .import-row button{width:auto;padding:8px 14px;font-size:12.5px}
   .import-row button.secondary{margin-top:0}
-  .import-status{font-size:11px;color:var(--muted);margin-top:8px;min-height:14px}
-  .import-status.ok{color:var(--navy)}
-  .import-status.err{color:#c0392b}
+  .import-status{font-size:12px;color:var(--muted);margin-top:10px;min-height:16px;
+    letter-spacing:-.005em}
+  .import-status.ok{color:var(--navy);font-weight:500}
+  .import-status.err{color:var(--red);font-weight:500}
   input[type=file]{display:none}
 
-  .file-button{display:inline-block;padding:7px 12px;
-    border:1px solid var(--field-border);border-radius:6px;
-    font-size:11.5px;color:var(--navy);cursor:pointer;background:#fff}
-  .file-button:hover{background:var(--navy-tint)}
+  .file-button{display:inline-flex;align-items:center;justify-content:center;
+    height:36px;padding:0 14px;
+    border:1px solid var(--field-border);border-radius:var(--radius-sm);
+    font-size:12.5px;font-weight:500;color:var(--navy);cursor:pointer;
+    background:#fff;transition:background .15s, border-color .15s;
+    letter-spacing:-.005em}
+  .file-button:hover{background:var(--navy-tint);border-color:#d6dde9}
 
-  button{width:100%;height:48px;padding:0 16px;font:inherit;font-size:13.5px;
-    font-weight:500;background:var(--navy);color:#fff;border:0;border-radius:8px;
-    cursor:pointer;transition:background .15s,opacity .15s;letter-spacing:.02em;
-    -webkit-tap-highlight-color:transparent;
-    display:inline-flex;align-items:center;justify-content:center;gap:8px}
-  button:hover{background:var(--navy-soft)}
-  button.secondary{background:transparent;color:var(--navy);
-    border:1px solid var(--field-border);margin-top:8px}
-  button.secondary:hover{background:var(--navy-tint)}
-  .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-  .btn-row button{margin-top:0;padding:9px 8px;font-size:12px}
+  button{width:100%;height:52px;padding:0 18px;font:inherit;font-size:14.5px;
+    font-weight:600;background:var(--navy);color:#fff;border:0;
+    border-radius:var(--radius);
+    cursor:pointer;
+    transition:background .15s, transform .08s, box-shadow .15s;
+    letter-spacing:-.01em;-webkit-tap-highlight-color:transparent;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    box-shadow:var(--shadow-sm)}
+  button:hover{background:var(--navy-soft);box-shadow:var(--shadow-md)}
+  button:active{transform:scale(.98)}
+  button.secondary{background:#fff;color:var(--ink);
+    border:1px solid var(--rule-strong);margin-top:10px;
+    box-shadow:var(--shadow-sm);font-weight:500}
+  button.secondary:hover{background:var(--field-bg);border-color:#d8dbe1}
+  .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .btn-row button{margin-top:0;padding:0 10px;font-size:13px;height:48px}
 
   /* collapsible advanced editor */
-  .editor-toggle{margin:14px 0 0}
+  .editor-toggle{margin:16px 0 0}
   .editor-toggle > summary{
     cursor:pointer;list-style:none;
-    padding:11px 14px;background:#f5f5f4;border-radius:8px;
-    font-size:13px;font-weight:500;color:var(--ink);
+    padding:13px 16px;background:var(--field-bg);border-radius:var(--radius);
+    font-size:13.5px;font-weight:600;color:var(--ink);
     user-select:none;transition:background .15s;
-    display:flex;align-items:center;gap:8px}
+    display:flex;align-items:center;gap:10px;letter-spacing:-.005em}
   .editor-toggle > summary::-webkit-details-marker{display:none}
-  .editor-toggle > summary:hover{background:#ececea}
+  .editor-toggle > summary:hover{background:#eef0f3}
   .editor-toggle > summary::before{
-    content:"▶";font-size:10px;color:var(--muted);
-    transition:transform .15s;display:inline-block}
-  .editor-toggle[open] > summary::before{transform:rotate(90deg)}
-  .editor-toggle[open] > summary{margin-bottom:6px}
-  .editor-toggle .summary-hint{font-size:11px;color:var(--muted);
-    font-weight:400;margin-left:auto}
+    content:"";display:inline-block;width:6px;height:6px;
+    border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);
+    transform:rotate(-45deg);transition:transform .15s;
+    margin-right:2px;margin-top:-2px}
+  .editor-toggle[open] > summary::before{transform:rotate(45deg);margin-top:-4px}
+  .editor-toggle[open] > summary{margin-bottom:10px}
+  .editor-toggle .summary-hint{font-size:12px;color:var(--muted);
+    font-weight:400;margin-left:auto;letter-spacing:-.005em}
 
-  .actions{padding:14px 0 0;margin-top:18px;border-top:1px solid var(--rule)}
+  .actions{padding:18px 0 0;margin-top:22px;border-top:1px solid var(--rule)}
   .preview-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;
     padding-top:14px;border-top:1px solid var(--rule);align-items:stretch}
   .preview-actions button{flex:1;min-width:140px;width:auto;margin-top:0}
@@ -180,29 +229,33 @@
   /* ===== Preview area ===== */
   .preview-wrap{padding:0}
 
-  .tabs{display:flex;gap:4px;margin:0 auto 18px;max-width:210mm;
-    background:#ececea;border-radius:8px;padding:4px}
-  .tab{flex:1;height:36px;padding:0 10px;text-align:center;font-size:12.5px;
-    font-weight:500;color:var(--muted);background:transparent;
-    border:0;border-radius:6px;cursor:pointer}
-  .tab:hover{background:rgba(255,255,255,.5)}
-  .tab.active{background:#fff;color:var(--navy);
-    box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .tabs{display:flex;gap:0;margin:0 auto 20px;max-width:210mm;
+    background:#eef0f3;border-radius:10px;padding:4px}
+  .tab{flex:1;height:36px;padding:0 12px;text-align:center;font-size:13px;
+    font-weight:600;color:var(--muted);background:transparent;
+    border:0;border-radius:7px;cursor:pointer;letter-spacing:-.01em;
+    transition:color .15s, background .15s, box-shadow .15s, transform .08s}
+  .tab:hover{color:var(--ink-2)}
+  .tab:active{transform:scale(.98)}
+  .tab.active{background:#fff;color:var(--ink);
+    box-shadow:0 1px 2px rgba(15,23,42,.06)}
 
   .stage{display:flex;flex-direction:column;align-items:center;gap:18px}
 
   /* A4 page */
   .page{background:#fff;width:210mm;min-height:297mm;
     padding:18mm 18mm 22mm;
-    box-shadow:0 1px 3px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.06);
+    box-shadow:var(--shadow-md);
     color:var(--ink);position:relative;flex-shrink:0;
-    transform:scale(var(--page-scale,1));transform-origin:top center}
+    transform:scale(var(--page-scale,1));transform-origin:top center;
+    border-radius:8px}
   .stage[data-tab=a4]{height:calc(297mm * var(--page-scale,1) + 12mm)}
 
   /* receipt */
   .receipt{background:#fff;width:80mm;padding:8mm 7mm;
-    box-shadow:0 1px 3px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.06);
-    color:var(--ink);font-size:9px;line-height:1.5;flex-shrink:0;}
+    box-shadow:var(--shadow-md);
+    color:var(--ink);font-size:9px;line-height:1.5;flex-shrink:0;
+    border-radius:6px}
 
   /* hide whichever tab is not active */
   .page.hidden,.receipt.hidden{display:none}
@@ -210,36 +263,39 @@
   /* --- A4 brand --- */
   .brand{margin-bottom:8px}
   .brand-img{display:block;max-width:180px;height:auto}
-  .brand-rule{height:1.5px;background:var(--navy);margin:10px 0 28px}
+  .brand-rule{height:1px;background:var(--navy);margin:12px 0 32px;opacity:.85}
 
   /* --- A4 title --- */
-  .doc-title{text-align:center;font-size:32px;font-weight:700;
-    color:var(--ink);margin:0 0 30px;letter-spacing:.01em;line-height:1.2}
+  .doc-title{text-align:center;font-size:30px;font-weight:700;
+    color:var(--ink);margin:6px 0 32px;letter-spacing:-.025em;line-height:1.2}
 
   /* --- A4 field grid --- */
-  .grid{border-radius:10px;overflow:hidden;background:var(--gray-cell);
-    border:1px solid var(--gray-cell);margin-bottom:30px}
-  .grid-row{display:grid;border-bottom:3px solid #fff}
+  .grid{border-radius:12px;overflow:hidden;background:var(--gray-cell);
+    margin-bottom:32px}
+  .grid-row{display:grid;border-bottom:2px solid #fff}
   .grid-row:last-child{border-bottom:0}
-  .grid-row.r1{grid-template-columns:120px 1fr}
-  .grid-row.r2{grid-template-columns:120px 1fr 120px 1fr}
-  .label-cell{background:var(--gray-cell);color:var(--navy);
-    font-weight:600;font-size:12.5px;padding:14px 16px;
-    display:flex;align-items:center}
-  .value-cell{background:#fafafa;color:var(--ink);font-size:12.5px;
-    padding:14px 16px;line-height:1.55;white-space:pre-wrap;
-    border-left:3px solid #fff}
-  .value-cell.right{border-left:3px solid #fff}
-  .value-cell.red{color:var(--red);font-weight:700}
+  .grid-row.r1{grid-template-columns:128px 1fr}
+  .grid-row.r2{grid-template-columns:128px 1fr 128px 1fr}
+  .label-cell{background:var(--gray-cell);color:var(--ink-2);
+    font-weight:600;font-size:12.5px;padding:16px 18px;
+    display:flex;align-items:center;letter-spacing:-.005em}
+  .value-cell{background:#fafbfc;color:var(--ink);font-size:13px;
+    padding:16px 18px;line-height:1.55;white-space:pre-wrap;
+    border-left:2px solid #fff;letter-spacing:-.005em}
+  .value-cell.right{border-left:2px solid #fff}
+  .value-cell.red{color:var(--red);font-weight:700}      /* confirmation 입금 금액 — emphasis */
+  .value-cell.tint-red{color:var(--red)}                 /* balance 납부할 금액 — color only */
 
   /* --- A4 clauses --- */
   .section-title{display:flex;align-items:center;gap:8px;
-    font-size:14px;font-weight:600;color:var(--ink);margin:0 0 12px}
-.clauses-box{background:var(--gray-cell);border-radius:10px;
-    padding:18px 22px;margin-bottom:36px}
-  .clause{font-size:12px;line-height:1.75;color:var(--ink);margin-bottom:8px}
+    font-size:15px;font-weight:600;color:var(--ink);margin:0 0 14px;
+    letter-spacing:-.01em}
+  .clauses-box{background:var(--gray-cell);border-radius:12px;
+    padding:22px 24px;margin-bottom:36px}
+  .clause{font-size:12.5px;line-height:1.75;color:var(--ink-2);margin-bottom:10px;
+    letter-spacing:-.005em}
   .clause:last-child{margin-bottom:0}
-  .clause b{font-weight:700}
+  .clause b{font-weight:700;color:var(--ink)}
 
   /* --- A4 footer --- */
   .foot{text-align:center;margin-top:30px;position:relative}
@@ -255,16 +311,16 @@
 
   /* ===== Receipt styles ===== */
   .r-logo{display:block;width:auto;max-width:25mm;height:auto;margin:0 auto 3mm}
-  .r-rule{border:0;border-top:1px dashed #999;margin:3mm 0}
+  .r-rule{border:0;border-top:1px dashed #d8dbe1;margin:3mm 0}
   .r-title{font-size:12px;font-weight:700;text-align:center;margin:0 0 1mm;
     color:var(--ink);line-height:1.35}
   .r-sub{font-size:8.5px;text-align:center;color:var(--muted);margin:0 0 2mm}
 
   .r-row{margin:2.5mm 0}
   .r-key{font-size:8px;color:var(--navy);font-weight:700;letter-spacing:.05em}
-  .r-val{font-size:9.5px;color:var(--ink);margin-top:.5mm;
+  .r-val{font-size:11px;color:var(--ink);margin-top:.5mm;
     line-height:1.5;white-space:pre-wrap;word-break:break-word}
-  .r-val.red{color:var(--red);font-weight:700;font-size:11px}
+  .r-val.red{color:var(--red)}
 
   .r-twocol{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
 
@@ -278,7 +334,8 @@
   .r-foot-text{font-size:8.5px;margin-bottom:2.5mm;color:var(--muted)}
   .r-foot-office-wrap{display:inline-flex;align-items:center;
     justify-content:center;gap:2mm}
-  .r-foot-office{font-size:10px;font-weight:700;line-height:1}
+  .r-foot-office{font-size:12px;font-weight:700;line-height:1.2;
+    letter-spacing:-.005em}
   .r-stamp{width:14mm;height:14mm;display:inline-flex;
     align-items:center;justify-content:center;flex-shrink:0}
   .r-stamp img{width:100%;height:100%;object-fit:contain;display:block}
@@ -572,7 +629,7 @@
     <input type="text" id="bf-title" data-title-source value="잔금 내역서" />
 
     <div class="group-title">계약 정보</div>
-    <label>소재지</label>
+    <label>부동산의 표시</label>
     <textarea id="bf-address">서울특별시 강서구 방화동 620-129 펜타곤스카이 제5층 제502호</textarea>
 
     <label>전세 보증금</label>
@@ -642,7 +699,7 @@
 
         <div class="grid">
           <div class="grid-row r1">
-            <div class="label-cell">소재지</div>
+            <div class="label-cell">부동산의 표시</div>
             <div class="value-cell" id="bp-address"></div>
           </div>
           <div class="grid-row r1">
@@ -669,9 +726,8 @@
         <div class="foot">
           <div class="foot-date" id="bp-date"></div>
           <div class="foot-text" id="bp-confirm"></div>
-          <div class="foot-office-wrap">
+          <div class="foot-office-wrap no-stamp">
             <span class="foot-office" id="bp-office"></span>
-            <span class="stamp"><img class="stamp-img" alt="도장" /></span>
           </div>
         </div>
       </div>
@@ -684,7 +740,7 @@
         <hr class="r-rule" />
 
         <div class="r-row">
-          <div class="r-key">소재지</div>
+          <div class="r-key">부동산의 표시</div>
           <div class="r-val" id="br-address"></div>
         </div>
         <div class="r-row">
@@ -709,9 +765,8 @@
         <div class="r-foot">
           <div class="r-foot-date" id="br-date"></div>
           <div class="r-foot-text" id="br-confirm"></div>
-          <div class="r-foot-office-wrap">
+          <div class="r-foot-office-wrap no-stamp">
             <span class="r-foot-office" id="br-office"></span>
-            <span class="r-stamp"><img class="stamp-img" alt="도장" /></span>
           </div>
         </div>
       </div>
@@ -886,14 +941,16 @@ $("bf-add-topay").addEventListener("click", ()=>{
 });
 
 function _amountRowsAsHtml(listId, klass){
-  // returns HTML string for grid card containing label/amount rows
+  // returns HTML string for grid card containing label/amount rows.
+  // Rows with empty amount are auto-hidden — use this to keep optional
+  // entries (e.g. 대출 실행금) out of the rendered preview when missing.
   const rows = $(listId).querySelectorAll(".amount-row");
   let h = "";
   rows.forEach(r => {
     const inputs = r.querySelectorAll('input[type=text]');
     const label = inputs[0]?.value.trim();
     const amount = inputs[1]?.value.trim();
-    if(label || amount){
+    if(amount){
       h += `<div class="grid-row r1">
         <div class="label-cell">${esc(label)}</div>
         <div class="value-cell ${klass||""}">${esc(amount)}</div>
@@ -902,7 +959,7 @@ function _amountRowsAsHtml(listId, klass){
   });
   return h;
 }
-function _amountRowsAsReceipt(listId){
+function _amountRowsAsReceipt(listId, redValue){
   // single column receipt-style: label key + amount value
   const rows = $(listId).querySelectorAll(".amount-row");
   let h = "";
@@ -910,14 +967,39 @@ function _amountRowsAsReceipt(listId){
     const inputs = r.querySelectorAll('input[type=text]');
     const label = inputs[0]?.value.trim();
     const amount = inputs[1]?.value.trim();
-    if(label || amount){
+    if(amount){
+      const valClass = redValue ? "r-val red" : "r-val";
       h += `<div class="r-row">
         <div class="r-key">${esc(label)}</div>
-        <div class="r-val">${esc(amount)}</div>
+        <div class="${valClass}">${esc(amount)}</div>
       </div>`;
     }
   });
   return h;
+}
+
+// Try to parse "<은행> <번호> <예금주>" into structured parts.
+// Falls back to a single string if the pattern doesn't match.
+function parseAccountString(s){
+  if(!s) return null;
+  const t = s.trim();
+  const m = t.match(/^(.+?(?:은행|뱅크|Bank))\s+([\d\-\s]+?)(?:\s+(.+))?$/);
+  if(m) return {
+    bank:   m[1].trim(),
+    number: m[2].trim().replace(/\s+/g, ""),
+    holder: (m[3] || "").trim(),
+  };
+  return null;
+}
+
+function _accountHtml(s){
+  const p = parseAccountString(s);
+  if(!p) return `<div class="acc-fallback">${esc(s || "")}</div>`;
+  return `
+    ${p.bank   ? `<div class="acc-bank">${esc(p.bank)}</div>` : ""}
+    ${p.number ? `<div class="acc-number">${esc(p.number)}</div>` : ""}
+    ${p.holder ? `<div class="acc-holder">${esc(p.holder)}</div>` : ""}
+  `;
 }
 
 function renderBalance(){
@@ -929,7 +1011,7 @@ function renderBalance(){
   const conf    = $("bf-confirm").value;
   const office  = $("bf-office").value;
 
-  // A4
+  // A4 — plain styling: account as plain text, no red on 납부할 금액
   $("bp-title").textContent     = title;
   $("bp-address").textContent   = addr;
   $("bp-deposit").textContent   = deposit;
@@ -938,9 +1020,9 @@ function renderBalance(){
   $("bp-confirm").textContent   = conf;
   $("bp-office").textContent    = office;
   $("bp-paid").innerHTML        = _amountRowsAsHtml("bf-paid-list");
-  $("bp-topay").innerHTML       = _amountRowsAsHtml("bf-topay-list", "red");
+  $("bp-topay").innerHTML       = _amountRowsAsHtml("bf-topay-list", "tint-red");
 
-  // Receipt
+  // Receipt — same styling as A4, except 납부할 금액 numbers tinted red
   $("br-title").textContent     = title;
   $("br-address").textContent   = addr;
   $("br-deposit").textContent   = deposit;
@@ -948,8 +1030,8 @@ function renderBalance(){
   $("br-date").textContent      = date;
   $("br-confirm").textContent   = conf;
   $("br-office").textContent    = office;
-  $("br-paid").innerHTML        = _amountRowsAsReceipt("bf-paid-list");
-  $("br-topay").innerHTML       = _amountRowsAsReceipt("bf-topay-list");
+  $("br-paid").innerHTML        = _amountRowsAsReceipt("bf-paid-list", false);
+  $("br-topay").innerHTML       = _amountRowsAsReceipt("bf-topay-list", true);
 }
 
 // Parser for the balance text format:
@@ -971,7 +1053,8 @@ function parseBalanceText(text){
     return m ? m[1].trim() : null;
   }
 
-  out.address = pickAfter("소재지");
+  // accept either "소재지" or "부동산의 표시"
+  out.address = pickAfter("(?:부동산의\\s*표시|소재지)");
   out.deposit = pickAfter("전세\\s*보증금");
   out.account = pickAfter("임대인\\s*계좌번호");
 
@@ -1133,12 +1216,12 @@ async function ensureKoreanFontReady(){
 // scale (--page-scale on mobile). Without this, capturing a 50%-scaled
 // preview would produce a half-resolution canvas and blurry text.
 //
-// Target 4x of natural size — that's ~384 DPI for an A4 page, sharp even
-// when the receiver pinch-zooms.
+// Target 3x of natural size — ~288 DPI for A4. Sharp on receiver zoom,
+// keeps PNG file size in a range Android Web Share reliably accepts.
 function captureScale(){
   const cssScale = parseFloat(getComputedStyle(document.documentElement)
     .getPropertyValue("--page-scale")) || 1;
-  const target = 4;
+  const target = 3;
   return Math.max(target, target / cssScale);
 }
 
@@ -1305,10 +1388,38 @@ async function prewarmPdfs(){
   // Run in background; ignore errors here — actual save will surface them.
   await getA4Blob();
   await getReceiptBlob();
+  // Also pre-build File objects so the click handler can call navigator.share
+  // synchronously (essential for Android transient activation).
+  await _buildReadyFiles();
 }
+
+// File objects, keyed by section + tab, ready for instant navigator.share()
+const _readyFiles = {};
+async function _buildReadyFiles(){
+  const sec = activeSectionName();
+  const a4Blob = await getA4Blob();
+  const recBlob = await getReceiptBlob();
+  _readyFiles[sec] = {
+    a4:      new File([a4Blob],  pdfFilename(""),     { type: "image/png" }),
+    receipt: new File([recBlob], pdfFilename("_모바일용"), { type: "image/png" }),
+  };
+}
+function getReadyFile(){
+  const sec = activeSectionName();
+  if(!_readyFiles[sec]) return null;
+  return currentTab() === "receipt" ? _readyFiles[sec].receipt : _readyFiles[sec].a4;
+}
+
 // Form edits invalidate the cache so the next save reflects new content
-document.addEventListener("input",  _invalidateIfChanged);
-document.addEventListener("change", _invalidateIfChanged);
+function _invalidateAndRebuild(){
+  const before = _formSnapshot();
+  _invalidateIfChanged();
+  // Also drop pre-built files so they get rebuilt with fresh content
+  const sec = activeSectionName();
+  if(_readyFiles[sec]) delete _readyFiles[sec];
+}
+document.addEventListener("input",  _invalidateAndRebuild);
+document.addEventListener("change", _invalidateAndRebuild);
 
 // ----- KakaoTalk + SMS share handlers -----
 // Both open the OS share sheet with the PDFs attached.
@@ -1332,11 +1443,55 @@ async function shareCurrentPdf(){
   }
 }
 
+// Synchronously fire navigator.share with a pre-built File. Android Chrome
+// revokes the user-activation token if you await anything between the click
+// and the share() call, so this path must run with no awaits before share().
+function quickShare(file){
+  if(!file || typeof navigator.share !== "function") return false;
+  setShareStatus("공유시트 여는 중…");
+  try {
+    navigator.share({ files: [file], title: file.name })
+      .then(()  => setShareStatus("✓ 전송 완료", "ok"))
+      .catch(e => {
+        if(e && e.name === "AbortError"){ setShareStatus("취소됨"); return; }
+        console.error("[share] failed:", e);
+        setShareStatus(
+          "공유 실패: " + (e && e.name || "Error") +
+          (e && e.message ? " — " + e.message : "") +
+          "<span class='hint'>이미지를 다운로드합니다 — 직접 첨부해 주세요.</span>",
+          "err"
+        );
+        // soft fallback: download the image
+        downloadBlob(file, file.name);
+      });
+    return true;
+  } catch(e){
+    console.error("[share] threw synchronously:", e);
+    return false;
+  }
+}
+
 // Share buttons (one per section) — bound by class so both sections share logic
 document.querySelectorAll(".js-share").forEach(btn => {
-  btn.addEventListener("click", ()=>{
-    withButtonBusy(btn, "준비 중…", async ()=>{
-      await shareCurrentPdf();
+  btn.addEventListener("click", () => {
+    // Fast path: file is ready → call share synchronously, preserving Android
+    // transient activation. Most clicks hit this path because we pre-warm.
+    const ready = getReadyFile();
+    if(ready && quickShare(ready)) return;
+
+    // Slow path: file isn't ready yet (user clicked before prewarm finished).
+    // Build then share — works on iOS, may fail on strict Android browsers.
+    withButtonBusy(btn, "준비 중…", async () => {
+      try {
+        setShareStatus("이미지 생성 중…");
+        await _buildReadyFiles();
+        const file = getReadyFile();
+        if(file) quickShare(file);
+        else throw new Error("이미지를 만들지 못했습니다");
+      } catch(err){
+        console.error("[share] error:", err);
+        setShareStatus("실패: " + (err && err.message || err), "err");
+      }
     });
   });
 });
